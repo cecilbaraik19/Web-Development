@@ -1,0 +1,16 @@
+.calMainBox{
+    margin: 0px;
+    padding: 0px;
+    width: 500px;
+    height: 600px;
+    border: 1px solid black;
+    background-color: rgb(99, 96, 96);
+    border-radius: 20px;
+}
+.display{
+    margin: 20px;
+    width: 450px;
+    height: 70px;
+    border: 1px solid white;
+    background-color: whitesmoke;
+}
