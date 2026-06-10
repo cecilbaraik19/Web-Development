@@ -1,16 +1,49 @@
-.calMainBox{
-    margin: 0px;
-    padding: 0px;
+
+.calBox{
+    width: 700px;
+    height: 800px;
+    background-color: gray;
+}
+.buttonBox{
     width: 500px;
     height: 600px;
     border: 1px solid black;
-    background-color: rgb(99, 96, 96);
+    background-color: rgb(222, 143, 143);
     border-radius: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .display{
     margin: 20px;
     width: 450px;
     height: 70px;
-    border: 1px solid white;
+    border: 1px solid rgb(0, 0, 0);
     background-color: whitesmoke;
+}
+.buttonBox{
+    background-color: rgb(69, 201, 201);
+    display: flex;
+    
+}
+.leftSideButton{
+    background-color: aquamarine;
+}
+.leftSideButton button{
+    width: 50px;
+    height: 30px;
+}
+.middleButton{
+    background-color: blueviolet;
+}
+.middleButton button{
+    width: 50px;
+    height: 50px;
+}
+.rightSideButton{
+    background-color: beige;
+}
+.rightSideButton button{
+    width: 50px;
+    height: 50px;
 }
