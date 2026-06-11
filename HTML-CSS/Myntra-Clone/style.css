@@ -81,6 +81,7 @@
 }
 .handbagSec h2{
     padding-left: 30px;
+    letter-spacing: 3px;
 }
 .handbagRow{
     width: 100%;
@@ -89,5 +90,23 @@
 }
 .handbagItems img{
     width: 350px;
+    height: 300px;
+}
+.myntraStyle{
+    width: 100%;
+    padding: 80px 0px;
+}
+.myntraStyle h2{
+    padding-left: 30px;
+    letter-spacing: 3px;
+}
+.myntraStyleRow{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+.myntraStylePics img{
+    width: 400px;
     height: 300px;
 }
