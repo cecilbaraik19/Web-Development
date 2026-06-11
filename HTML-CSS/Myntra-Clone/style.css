@@ -85,11 +85,12 @@
 }
 .handbagRow{
     width: 100%;
+    height: 100%;
     display: flex;
     justify-content: center;
 }
 .handbagItems img{
-    width: 350px;
+    width: 300px;
     height: 300px;
 }
 .myntraStyle{
@@ -107,15 +108,30 @@
     margin-top: 20px;
 }
 .myntraStylePics img{
-    width: 400px;
+    width: 300px;
     height: 300px;
 }
 .summerBanner{
     width: 100%;
-    height: 650px;
+    height: 500px;
 }
 
 .summerBanner img{
     width: 100%;
     height: 100%;
+}
+.thirdBanner{
+    width: 100%;
+    height: 650px;
+}
+
+.thirdBanner img{
+    width: 100%;
+    height: 100%;
+}
+.birthdayBanner img{
+    width: 100%;
+}
+.shopByCategoryPic img{
+    width: 100%;
 }
