@@ -18,6 +18,10 @@
     align-items: center;
     display: flex;
 }
+.logo img{
+    width: 50px;
+    height: 50px;
+}
 .menu>ul{
     display: flex;
     gap: 30px;
@@ -29,4 +33,36 @@
 }
 .headerRight{
     width: 45%;
+    display: flex;
+    justify-content: space-between;
+    margin: 2%;
+    align-items: center;
+    
+}
+.headerRight form{
+    width: 70%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    display: flex;
+}
+.headerRight form button{
+    width: 10%;
+    background: transparent;
+    border: none;
+}
+.headerRight form input{
+    width: 90%;
+    height: 30px;
+    border: none;
+}
+.profile ul{
+    display: flex;
+    gap: 15px;
+}
+.profile ul li{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    font-size: 12px;
+    gap: 3px;
 }
