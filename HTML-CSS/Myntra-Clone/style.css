@@ -110,3 +110,12 @@
     width: 400px;
     height: 300px;
 }
+.summerBanner{
+    width: 100%;
+    height: 650px;
+}
+
+.summerBanner img{
+    width: 100%;
+    height: 100%;
+}
