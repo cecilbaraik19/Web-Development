@@ -74,14 +74,20 @@
 .banner img{
     width: 100%;
 }
-.brandSection{
+.handbagSec{
     width: 100%;
     padding: 80px 0px;
+    margin-top: 5px;
 }
-.brandSection h2{
+.handbagSec h2{
     padding-left: 30px;
 }
-.brandRow{
+.handbagRow{
     width: 100%;
     display: flex;
+    justify-content: center;
+}
+.handbagItems img{
+    width: 350px;
+    height: 300px;
 }
