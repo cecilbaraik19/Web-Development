@@ -1,0 +1,32 @@
+*{
+    margin: 0px;
+    padding: 0px;
+    text-decoration: none;
+    list-style: none;
+    font-family: sans-serif;
+}
+.header{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    box-shadow: 0px 2px 10px 0px #ccc;
+}
+.headerLeft{
+    width: 48%;
+    margin-left: 2%;
+    justify-content: space-between;
+    align-items: center;
+    display: flex;
+}
+.menu>ul{
+    display: flex;
+    gap: 30px;
+}
+.menu>ul>li a{
+    font-size: 14px;
+    font-weight: bold;
+    color: black;
+}
+.headerRight{
+    width: 45%;
+}
