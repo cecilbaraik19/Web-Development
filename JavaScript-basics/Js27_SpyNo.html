@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        s=0
+        p=1
+        n=parseInt(prompt("Enter any No.:"))
+        while(n>0){
+            d=n%10
+            s=s+d
+            p=p*d
+            n=parseInt(n/10)
+        }if(s==p){
+            document.write("Spy number")
+        }else{
+            document.write("Not Spy number")
+        }
+    </script>
+</body>
+</html>
