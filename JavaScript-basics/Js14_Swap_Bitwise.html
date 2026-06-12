@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swaping number using bitwise operator</title>
+</head>
+<body>
+    <script>
+        a=parseInt(prompt("Enter the value of a"))
+        b=parseInt(prompt("Enter the value of b"))
+        document.write("Value of a :"+a+"<br>")
+        document.write("Value of b :"+b+"<br>")
+        a=a^b
+        b=a^b
+        a=a^b
+        document.write("Value of a after swap: "+a+"<br>")
+        document.write("Value of b after swap: "+b+"<br>")
+    </script>
+</body>
+</html>
