@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ID-if else</title>
+</head>
+<body>
+    <p id="demo"></p>
+    <script>
+        const output=document.getElementById("demo")
+        let marks=parseInt(prompt("Enter Marks"))
+        if(marks>=90){
+            output.innerHTML="Grade A"
+        }else if(marks>=80){
+            output.innerHTML="Grade B"
+        }else if(marks>=70){
+            output.innerHTML="Grade C"
+        }else if(marks>=60){
+            output.innerHTML="Grade D"
+        }else if(marks>=45){
+            output.innerHTML="<font color='green'>Pass</font>"
+        }else{
+            output.innerHTML="<font color='red'>Try Again</font>"
+        }
+    </script>
+</body>
+</html>

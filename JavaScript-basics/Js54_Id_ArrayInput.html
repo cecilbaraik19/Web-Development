@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <p id="output"></p>
+    <script>
+        const output=document.getElementById("output");
+        let arr = [];
+        for(let i=0;i<10;i++){
+            arr[i]=parseInt(prompt("Enter array element"));
+        }for(let i=0;i<10;i++){
+            output.innerHTML+=arr[i]+"<br>";
+        }
+    </script>
+</body>
+</html>
