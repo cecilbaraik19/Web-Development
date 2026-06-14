@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <p id="output"></p>
+    <script>
+        const output = document.getElementById("output");
+        let arr =[];
+        for(let i=0;i<10;i++){
+            arr[i]=parseInt(prompt("Enter array element"));
+        }
+        output.innerHTML="Array Element <br>";
+        for(let i=0;i<10;i++){
+            output.innerHTML+=arr[i]+"<br>";
+        }
+        for(let i=0;i<10;i++){
+            for(let j=i+1;j<10;j++){
+                if(arr[i]>arr[j]){
+                    let temp = arr[i];
+                        arr[i] = arr[j];
+                        arr[j] = temp;
+                }
+            }
+        }
+        output.innerHTML+="Data After Sorting<br>";
+        for(let i=0;i<10;i++){
+            output.innerHTML+=arr[i]+"<br>";
+        }
+    </script>
+</body>
+</html>

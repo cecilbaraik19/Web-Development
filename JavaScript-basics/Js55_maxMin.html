@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Max and Min in Array</title>
+</head>
+<body>
+    <p id="output"></p>
+
+    <script>
+        const output = document.getElementById("output");
+
+        let arr = [];
+
+        for(let i = 0; i < 10; i++) {
+            arr[i] = parseInt(prompt("Enter array element"));
+        }
+
+        let max = arr[0];
+        let min = arr[0];
+
+        output.innerHTML = "Array Elements:<br>";
+
+        for(let i = 0; i < 10; i++) {
+            output.innerHTML += arr[i] + "<br>";
+
+            if(arr[i] > max) {
+                max = arr[i];
+            }
+
+            if(arr[i] < min) {
+                min = arr[i];
+            }
+        }
+
+        output.innerHTML += "<br>Maximum Number: " + max;
+        output.innerHTML += "<br>Minimum Number: " + min;
+    </script>
+</body>
+</html>

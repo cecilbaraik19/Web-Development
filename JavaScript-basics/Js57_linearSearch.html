@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Search</title>
+</head>
+<body>
+    <p id="output"></p>
+    <script>
+        const output = document.getElementById("output");
+        let arr = [];
+        let c = 0;
+        for(let i=0;i<10;i++){
+            arr[i]=parseInt(prompt("Enter array element"));
+        }
+        output.innerHTML="Array Elements<br>"
+        for(let i=0;i<10;i++){
+            output.innerHTML+=arr[i]+"<br>";
+        }
+        let num = parseInt(prompt("Enter The No. want to be search"));
+        for(let i=0;i<10;i++){
+            if(num==arr[i]){
+                c++;
+            }
+        }
+        if(c>0){
+            output.innerHTML+="<font color='green'>Given number Found</font><br>";
+        }else{
+            output.innerHTML+="<font color='red'>Given No. NOT found</font><br>";
+        }
+    </script>
+</body>
+</html>
