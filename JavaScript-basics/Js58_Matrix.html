@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <p id="output"></p>
+    <script>
+        const output = document.getElementById("output");
+        let mat = [[1,2,3],[4,5,6],[7,8,9]];
+        output.innerHTML="Matrix Element<br>";
+        for(let i=0;i<3;i++){
+            for(let j=0;j<3;j++){
+                output.innerHTML+=mat[i][j]+"&nbsp&nbsp";
+            }
+            output.innerHTML+="<br>";
+        }
+    </script>
+</body>
+</html>

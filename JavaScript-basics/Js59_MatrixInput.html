@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <p id="output"></p>
+    <script>
+        const output = document.getElementById("output");
+        let mat = [[],[],[]];
+        for(let i=0;i<3;i++){
+            for(let j=0;j<3;j++){
+                mat[i][j]=prompt("Enter Matrix Element");
+            }
+        }
+        output.innerHTML="Matrix Element<br>";
+        for(let i=0;i<3;i++){
+            for(let j=0;j<3;j++){
+                output.innerHTML+=mat[i][j]+"&nbsp&nbsp";
+            }
+            output.innerHTML+="<br>";
+        }
+    </script>
+</body>
+</html>
