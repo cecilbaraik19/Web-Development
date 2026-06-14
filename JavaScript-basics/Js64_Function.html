@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parameter and No Return Value</title>
+</head>
+<body>
+    <p id="output"></p>
+    <script>
+        const output=document.getElementById("output");
+        function swap(a,b){
+            a=a+b;
+            b=a-b;
+            a=a-b;
+            output.innerHTML+="Value of a after swap:"+a+"<br>Value of b after swap"+b;
+        }
+        let a = parseInt(prompt("Enter the value of a"));
+        let b = parseInt(prompt("Enter the value of b"));
+        output.innerHTML+="Value of a:"+a+"<br>Value of b:"+b+"<br>";
+        swap(a,b)
+    </script>
+</body>
+</html>
