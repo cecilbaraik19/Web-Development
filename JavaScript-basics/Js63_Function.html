@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parameter and Return Value</title>
+</head>
+<body>
+    <p id="output"></p>
+    <script>
+        const output = document.getElementById("output");
+        function product(x,y){
+            let z = x*y;
+            return z;
+        }
+        let a = parseInt(prompt("Enter the value of a"));
+        let b = parseInt(prompt("Enter the value of b"));
+        output.innerHTML+="Value of a:"+a+"<br>Value of b:"+b+"<br>";
+        let r = product(a,b);
+        output.innerHTML+="Product of two No:"+r;
+    </script>
+</body>
+</html>
