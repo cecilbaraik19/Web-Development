@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+   
+    <style>
+        #test{
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Hover over the below text to customize the front</h2>
+    <div id="test" onmouseenter="changeFontSize();changeColor();">Hello World!!!</div>
+    <script>
+        function changeFontSize(event){
+            document.getElementById("test").style.fontSize="35px";
+        }
+        function changeColor(event){
+            document.getElementById("test").style.color="red";
+        }
+    </script>
+</body>
+</html>
