@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wheel Event Example</title>
+    <style>
+        #wheelDiv{
+            width: 600px;
+            height: 200px;
+            background-color: palevioletred;
+        }
+    </style>
+</head>
+<body>
+    <div id="wheelDiv">
+        Please bring the curser inside this DIV and rotate the wheel of mouse
+    </div>
+    <p id="output"></p>
+    <script>
+        const wheelDiv=document.getElementById("wheelDiv");
+        const outputDiv=document.getElementById("output");
+        wheelDiv.addEventListener("wheel",function(event){
+            outputDiv.innerHTML+='Mouse Wheel Rotate!'+event+"<br>";
+        });
+    </script>
+</body>
+</html>

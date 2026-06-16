@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Event</title>
+    <style>
+        #message{
+            margin-top: 10px;
+            font-weight: lighter;
+            border: 1px solid #e90000;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            color: #333;
+            width: 30%;
+        }
+    </style>
+</head>
+<body>
+    <label for="search">Search:</label>
+    <input type="text" id="search" oninput="handleInput()">
+    <div id="message"></div>
+
+    <script>
+        var messageElement=document.getElementById("message");
+        function handleInput(){
+            var searchInput = document.getElementById("search").value;
+            messageElement.innerHTML+="Search input: "+searchInput+"<br>";
+        }
+    </script>
+</body>
+</html>

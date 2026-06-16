@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mouseover Event Example</title>
+    <style>
+        #myDiv{
+            width: 600px;
+            height: 200px;
+            background-color: lightblue;
+        }
+    </style>
+</head>
+<body>
+    <div id="myDiv">Hover Over Me</div>
+    <script>
+        //Get the Div Element
+        const myDiv = document.getElementById("myDiv");
+        
+        //Define the Event handler function
+        function handleMouseover(){
+            myDiv.style.backgroundColor="lightcoral";
+        }
+
+        //Attach the event listner to the div
+        myDiv.addEventListener("mouseover",handleMouseover);
+
+        //Additional example: Change color back on mouseout
+        function handleMouseout(){
+            myDiv.style.backgroundColor="lightblue";
+        }
+        myDiv.addEventListener("mouseout",handleMouseout);
+    </script>
+</body>
+</html>
