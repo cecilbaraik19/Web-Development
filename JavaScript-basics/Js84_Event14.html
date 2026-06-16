@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        ul{
+            list-style-type: none;
+            padding: 0px;
+        }
+        li{
+            margin: 5px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            cursor:pointer;
+            max-width: 30%;
+        }
+    </style>
+</head>
+<body>
+    <ul id="myList">
+        <li>Ranchi</li>
+        <li>Bokaro</li>
+        <li>Dhanbad</li>
+        <li>Hazaribagh</li>
+        <li>Jamshedpur</li>
+    </ul>
+    <div id="output"></div>
+    <script>
+        const output = document.getElementById("output");
+        const myList = document.getElementById("myList");
+
+        myList.addEventListener("click",function(event){
+            if(event.target.tagName==='LI'){
+                output.innerHTML+="Tutorial clicked:"+event.target.textContent+"<br>";
+            }
+        });
+    </script>
+</body>
+</html>
