@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mouse Down and Mouse Up Events Example</title>
+    <style>
+        #mouseUpDownDiv{
+            width: 600px;
+            height: 100px;
+            background-color: lightblue;
+        }
+    </style>
+</head>
+<body>
+    <div id="mouseUpDownDiv"></div>
+    <p id="output"></p>
+    <script>
+        const mouseUpDownDiv = document.getElementById("mouseUpDownDiv");
+        const outputDiv = document.getElementById("output");
+        mouseUpDownDiv.addEventListener("mousedown",function(event){
+            outputDiv.innerHTML+='Mouse button down!'+JSON.stringify(event)+"<br>"
+        });
+        mouseUpDownDiv.addEventListener("mouseup",function(event){
+            outputDiv.innerHTML+='Mouse button up!'+JSON.stringify(event)+"<br>";
+        });
+    </script>
+</body>
+</html>
