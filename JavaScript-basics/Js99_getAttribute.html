@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>The Element Object</h1>
+    <h2>The getAttribute() Method</h2>
+    <button id="myButton" onclick="myFunction()">Button</button>
+    <p>The value of the onclick attribute of the button is:</p>
+    <p id="demo"></p>
+    <script>
+        const myButton = document.getElementById("myButton");
+        let text = myButton.getAttribute("onclick");
+        document.getElementById("demo").innerHTML=text;
+    </script>
+</body>
+</html>
