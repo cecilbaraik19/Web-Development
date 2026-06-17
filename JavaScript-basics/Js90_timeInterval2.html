@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div>Wait for a SUM of 3 numbers!</div>
+    <div id="output"></div>
+    <script>
+        setTimeout(sum,3000,10,20,30);
+        function sum(num1,num2,num3){
+            let result = num1+num2+num3;
+            document.getElementById("output").innerHTML=+num1+"+"+num2+"+"+num3+"<br>"+"SUM="+result;
+        }
+    </script>
+</body>
+</html>
