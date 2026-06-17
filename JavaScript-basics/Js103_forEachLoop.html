@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Javascript Array</h1>
+    <h2>The For Each Loop</h2>
+    <p>forEach() calls a function for each element in an array</p>
+    <p id="demo"></p>
+    <script>
+        let text = "";
+        const fruits = ["Apple","Mango","Cherry"];
+        fruits.forEach(myFunction);
+        document.getElementById("demo").innerHTML=text;
+        function myFunction(item,index){
+            text += index + ":"+item+"<br>";
+        }
+    </script>
+</body>
+</html>
