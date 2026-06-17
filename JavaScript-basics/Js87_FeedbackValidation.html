@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact</title>
+
+<script>
+function nckh() {
+    var n, nc;
+    nc = /^[a-zA-Z]+$/;
+    n = document.getElementById("n");
+
+    if (!n.value.match(nc)) {
+        document.getElementById("ns").innerHTML = "**Check the Entered Name";
+        return 0;
+    } else {
+        document.getElementById("ns").innerHTML = "";
+        return 1;
+    }
+}
+
+function phn() {
+    var p, pc;
+    pc = /^[0-9]{10}$/;
+
+    p = document.getElementById("p");
+
+    if (!p.value.match(pc)) {
+        document.getElementById("ps").innerHTML = "**Check the Phone No.";
+        return 0;
+    } else {
+        document.getElementById("ps").innerHTML = "";
+        return 1;
+    }
+}
+
+function emchk() {
+    var e, ec;
+    ec = /^[0-9a-zA-Z._-]+@[a-zA-Z0-9-]+\.[a-zA-Z.]{2,6}$/;
+
+    e = document.getElementById("e");
+
+    if (!e.value.match(ec)) {
+        document.getElementById("ems").innerHTML = "**Check the Email ID";
+        return 0;
+    } else {
+        document.getElementById("ems").innerHTML = "";
+        return 1;
+    }
+}
+
+function show() {
+    if (nckh() == 1 && phn() == 1 && emchk() == 1) {
+
+        var n1, p1, e1, mess;
+
+        n1 = document.getElementById("n").value;
+        p1 = document.getElementById("p").value;
+        e1 = document.getElementById("e").value;
+        mess = document.getElementById("a").value;
+
+        alert("Thanks For Your Feedback");
+
+        document.getElementById("output").textContent =
+            "Dear " + n1 +
+            ", Thank you for the enquiry. Email: " + e1 +
+            ", Phone No.: " + p1 +
+            ", Message: " + mess;
+    } else {
+        alert("Check the Entered Data");
+    }
+}
+</script>
+</head>
+
+<body>
+
+<center><b><u>Feedback</u></b></center>
+
+<form>
+<table width="80%" height="70%" align="center">
+
+<tr>
+    <td>Name:</td>
+    <td>
+        <input type="text" id="n" onblur="nckh()">
+        <span id="ns"></span>
+    </td>
+</tr>
+
+<tr>
+    <td>Phone No.</td>
+    <td>
+        <input type="text" id="p" maxlength="10" onblur="phn()">
+        <span id="ps"></span>
+    </td>
+</tr>
+
+<tr>
+    <td>Email ID:</td>
+    <td>
+        <input type="text" id="e" onblur="emchk()">
+        <span id="ems"></span>
+    </td>
+</tr>
+
+<tr>
+    <td>Subject:</td>
+    <td>
+        <input type="text" name="sb">
+    </td>
+</tr>
+
+<tr>
+    <td>Your Message</td>
+    <td>
+        <textarea id="a" rows="5" cols="25"></textarea>
+    </td>
+</tr>
+
+<tr>
+    <td>
+        <button type="button" onclick="show()">Submit</button>
+        <button type="reset">Reset</button>
+    </td>
+</tr>
+
+</table>
+</form>
+
+<p id="output"></p>
+
+</body>
+</html>
