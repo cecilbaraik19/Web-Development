@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Example</title>
+</head>
+<body>
+    <h1>JavaScript Mapping</h1>
+    <h2>The set() method</h2>
+    <p id="demo"></p>
+
+    <script>
+        // Create a Map
+        const fruits = new Map();
+
+        // Set Map values
+        fruits.set("apples", 500);
+        fruits.set("oranges", 300);
+        fruits.set("cherries", 200);
+
+        let num = fruits.get("oranges");
+
+        document.getElementById("demo").innerHTML =
+            "There are " + num + " oranges";
+    </script>
+</body>
+</html>
