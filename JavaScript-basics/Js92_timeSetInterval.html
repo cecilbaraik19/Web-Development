@@ -6,17 +6,18 @@
     <title>Document</title>
 </head>
 <body>
+    <button onclick="startTimer()">Start Timer</button>
     <div id="output"></div>
     <script>
         let output = document.getElementById("output");
-        output.innerHTML+="The output of the counter is given below.<br>";
-        var p = 0;
-        function counter(){
-            output.innerHTML+="Count is :- "+p+".<br>";
-            setTimeout(counter,3000);
-            p++;
+        var seconds = 0;
+        function startTimer(){
+            setInterval(timer,1000);
         }
-        counter();
+        function timer(){
+            seconds++;
+            output.innerHTML+="Total Seconds are:"+seconds+"<br>";
+        }
     </script>
 </body>
 </html>

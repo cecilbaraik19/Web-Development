@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .red{
+            background-color: red;
+        }
+        .green{
+            background-color: green;
+        }
+        #square{
+            height: 200px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div>Using setInterval() method to flip the color of the HTML element after each interval</div>
+    <div id="square" class="red"></div>
+    <script>
+        let output = document.getElementById("output");
+        setInterval(function(){
+            let square = document.getElementById("square");
+            if(square.classList.contains('red')){
+                square.classList.remove('red');
+                square.classList.add('green');
+            }else{
+                square.classList.remove('green');
+                square.classList.add('red');
+            }
+        },1000);
+    </script>
+</body>
+</html>

@@ -9,14 +9,15 @@
     <div id="output"></div>
     <script>
         let output = document.getElementById("output");
-        output.innerHTML+="The output of the counter is given below.<br>";
-        var p = 0;
-        function counter(){
-            output.innerHTML+="Count is :- "+p+".<br>";
-            setTimeout(counter,3000);
-            p++;
-        }
-        counter();
+        let number = 10;
+        let id = setInterval(()=>{
+            if(number == 50){
+                clearInterval(id);
+                output.innerHTML+="The time is stopped."
+            }
+            output.innerHTML+="The number is :"+number+"<br>";
+            number+=10;
+        },1000);
     </script>
 </body>
 </html>
