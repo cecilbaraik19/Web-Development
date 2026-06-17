@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <style>
+        #box{
+            position: absolute;
+            top: 0%;
+            left: 0%;
+            height: 100%;
+            width: 100%;
+        }
+        #box1{
+            position: absolute;
+            top: 20%;
+            left: 5%;
+            height: 80%;
+            width: 60%;
+            background-color: black;
+        }
+        #caption{
+            position: absolute;
+            height: 10%;
+            width: 40%;
+            top: 0%;
+            left: 30%;
+            text-align: center;
+            font-size: 1,7vw;
+            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+            text-decoration: bold;
+            color: wheat;
+            background-color: rgba(116,58,58,2);
+        }
+    </style>
+    <script>
+        var i = -1;
+        var a = new Array('./images/1.webp','./images/1a.webp','./images/1b.webp');
+        var b = new Array("Image 1","Image 2","Image 3");
+
+        function slideshow(){
+            if(i<11){
+                i++;
+            }else{
+                i=0;
+            }
+            document.getElementById("s").src=a[i];
+            document.getElementById("caption").innerHTML=b[i];
+            setTimeout("slideshow()",3000);
+        }
+    </script>
+</head>
+<body onload="slideshow()">
+    <div id="box">
+        <img src="" height="100%" width="100%" id="s">
+        <span id="caption"></span>
+    </div>
+</body>
+</html>
