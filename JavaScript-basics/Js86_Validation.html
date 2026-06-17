@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Validation</title>
+
+    <script>
+        function validationForm() {
+            let x = document.forms["myForm"]["fname"].value;
+
+            if (x == "") {
+                alert("Name must be filled");
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+</head>
+<body>
+
+    <form action="Js89.html" name="myForm" method="POST" onsubmit="return validationForm()">
+        <h2>Form Validation</h2>
+
+        Enter Name:
+        <input type="text" name="fname" size="20">
+
+        <input type="submit" value="Submit" name="s1">
+    </form>
+
+</body>
+</html>
