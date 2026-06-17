@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form</title>
+    <link rel="stylesheet" href="form.css">
+</head>
+<body>
+    <form action="form.html" method="post" name="contactForm" onsubmit="return validateForm()">
+        <h2>Application Form</h2>
+        <div class="row">
+            <label for="">Full Name</label>
+            <input type="text" name="name">
+            <div class="error" id="nameError"></div>
+        </div>
+
+        <div class="row">
+            <label for="">Email Address</label>
+            <input type="email" name="email">
+            <div class="error" id="emailError"></div>
+        </div>
+
+        <div class="row">
+            <label for="">Mobile No.</label>
+            <input type="tel" name="mobile" maxlength="10">
+            <div class="error" id="mobileError"></div>
+        </div>
+
+        <div class="row">
+            <label for="">Country</label>
+            <select name="country" id="">
+                <option value="">----Select----</option>
+                <option value="">India</option>
+                <option value="">Sri Lanka</option>
+                <option value="">Nepal</option>
+            </select>
+            <div class="error" id="countryError"></div>
+        </div>
+
+        <div class="row">
+            <label for="">Gender</label>
+            <div class="form-inline">
+                <label for="">
+                    <input type="radio" name="gender" value="male">Male
+                </label>
+                <label for="">
+                    <input type="radio" name="gender" value="female">Female
+                </label>
+                <label for="">
+                    <input type="radio" name="gender" value="others">Others
+                </label>
+            </div>
+            <div class="error" id="genderError"></div>
+        </div>
+
+        <div class="row">
+            <label for="">Hobbies <i>(Optional)</i></label>
+            <div class="form-inline">
+                <label for="">
+                    <input type="checkbox" name="hobbies[]" value="Sports">Sports
+                </label>
+                <label for="">
+                    <input type="checkbox" name="hobbies[]" value="Movies">Movies
+                </label>
+                <label for="">
+                    <input type="checkbox" name="hobbies[]" value="Music">Music
+                </label>
+            </div>
+        </div>
+        <div class="row">
+            <input type="submit" value="Submit">
+        </div>
+    </form>
+</body>
+</html>
