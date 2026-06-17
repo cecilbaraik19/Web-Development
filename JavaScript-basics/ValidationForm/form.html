@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Form</title>
     <link rel="stylesheet" href="form.css">
+    <script src="form.js"></script>
 </head>
 <body>
     <form action="form.html" method="post" name="contactForm" onsubmit="return validateForm()">
@@ -31,9 +32,9 @@
             <label for="">Country</label>
             <select name="country" id="">
                 <option value="">----Select----</option>
-                <option value="">India</option>
-                <option value="">Sri Lanka</option>
-                <option value="">Nepal</option>
+                <option value="India">India</option>
+                <option value="Sri Lanka">Sri Lanka</option>
+                <option value="Nepal">Nepal</option>
             </select>
             <div class="error" id="countryError"></div>
         </div>
