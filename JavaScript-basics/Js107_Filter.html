@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>JavaScript</h1>
+    <h2>The filter() method</h2>
+    <p><input type="number" id="ageToCheck" value="30"></p>
+    <button onclick="myFunction()">Check</button>
+    <p id="demo"></p>
+    <script>
+        const ages = [32,45,12,7,39,24];
+        function checkAge(ages){
+            return ages > document.getElementById("ageToCheck").value;
+        }
+        function myFunction(){
+            document.getElementById("demo").innerHTML=ages.filter(checkAge);
+        }
+    </script>
+</body>
+</html>
