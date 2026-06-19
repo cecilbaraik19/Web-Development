@@ -1,0 +1,38 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+.container{
+    background-color: lightblue;
+    min-height: 100vh;
+    border:10px solid rgb(25, 25, 103);
+}
+.content{
+    max-width: 900px;
+    margin: 0 auto;
+}
+.top_section{
+    margin-top: 100px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+.top_section h1{
+    font-size: 50px;
+    font-weight: bold;
+    color: rgb(11, 11, 75);
+    text-transform: uppercase;
+}
+.top_section h4{
+    text-align: end;
+    font-size: 30px;
+}
+.image_container{
+    border-radius: 50%;
+    overflow: hidden;
+}
+.image_container, img{
+    width: 300px;
+    height: 300px;
+}
