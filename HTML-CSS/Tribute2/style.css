@@ -42,10 +42,23 @@
 .about-section h2{
     font-size: 70px;
     font-weight: 400;
-    margin-bottom: 20px;
+    margin: 20px 20px;
 }
 .about-section p{
     font-size: 20px;
     line-height: 30px;
     letter-spacing: 1.2px;
+}
+.biography-section{
+    margin:50x 0;
+}
+.biography-section h3{
+   margin-top: 50px;
+   margin-bottom: 30px;
+}
+.biography-section ul{
+    margin-left: 50px;
+}
+.biography-section li{
+    margin-bottom: 15px;
 }
