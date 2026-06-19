@@ -48,6 +48,7 @@
     font-size: 20px;
     line-height: 30px;
     letter-spacing: 1.2px;
+    text-align: justify;
 }
 .biography-section{
     margin:50x 0;
@@ -61,4 +62,10 @@
 }
 .biography-section li{
     margin-bottom: 15px;
+}
+footer{
+    margin: 50px 0;
+}
+footer p{
+    text-align: end;
 }
