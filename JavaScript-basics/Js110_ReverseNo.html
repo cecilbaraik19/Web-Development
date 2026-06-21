@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        let num = 12345;
+        let revNumber=0;
+        
+        while(num>0){
+            let lastDigit=num%10;
+            revNumber = revNumber*10+lastDigit;
+            num=parseInt(num/10);
+        }
+        console.log(revNumber);
+    </script>
+</body>
+</html>
