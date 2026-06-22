@@ -1,0 +1,22 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    background-color: aquamarine;
+}
+.container{
+    max-width: 900px;
+    margin: 0 auto;
+}
+.apply-box{
+    max-width: 600px;
+    padding: 20px;
+    background-color: white;
+    margin: 0 auto;
+    margin-top: 50px;
+    box-shadow: 4px 3px 5px rgba(1, 2, 2, 0.1);
+    border-radius: 10px;
+}
