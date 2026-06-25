@@ -92,3 +92,10 @@ html,body{
     font-size: 64px;
     font-weight: 300;
 }
+footer{
+    text-align: center;
+    text-transform: uppercase;
+    background-color: black;
+    padding: 20px;
+    color: white;
+}
