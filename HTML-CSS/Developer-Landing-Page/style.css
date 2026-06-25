@@ -27,3 +27,17 @@ html,body{
     font-size: 72px;
     font-weight: 400;
 }
+.black-box{
+    background-color: black;
+    padding: 20px;
+}
+.black-box h2{
+    font-size: 72px;
+    color: white;
+    text-align: center;
+    font-weight: 300;
+}
+.black-box h2 span{
+    font-weight: 400;
+    font-size: 92px;
+}
