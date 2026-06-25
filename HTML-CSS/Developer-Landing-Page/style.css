@@ -99,3 +99,31 @@ footer{
     padding: 20px;
     color: white;
 }
+@media (max-width:786px){
+    h1{
+        font-size: 32px;
+    }
+    hero-section{
+        min-height: 50vh;
+    }
+    .text-container{
+        padding: 10px 0;
+        text-align: center;
+    }
+    .lg-text{
+        font-size: 32px;
+    }
+    .black-box h2{
+        font-size: 24px;
+    }
+    .black-box h2 span{
+        font-weight: 400;
+        font-size: 32px;
+    }
+    .bottom-section{
+        flex-direction: column;
+    }
+    .about h2, .contact h2{
+        font-size: 32px
+    }
+}
