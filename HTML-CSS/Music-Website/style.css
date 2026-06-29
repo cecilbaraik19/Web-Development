@@ -113,3 +113,18 @@ button:hover{
     text-align: center;
     margin-top: 50px;
 }
+.video-section {
+  background-image: url(images/video.jpg);
+  background-size: cover;
+  min-height: 800px;
+  display: grid;
+  place-items: center;
+  color: rgb(0, 0, 0);
+  text-align: center;
+}
+.video-section .container {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  margin-top: -200px;
+}
