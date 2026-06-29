@@ -101,3 +101,15 @@ button:hover{
     background-color: rgb(211, 9, 9);
     color: white;
 }
+.secondary-btn{
+    background-color: rgb(8, 8, 160);
+    color: white;
+}
+.about-music{
+    padding-top: 500px;
+    display: grid;
+    place-items: center;
+    gap: 50px;
+    text-align: center;
+    margin-top: 50px;
+}
