@@ -70,3 +70,32 @@ nav{
     background-color: rgb(242, 239, 239);
     color: rgb(64, 63, 63);
 }
+.container{
+    display: flex;
+}
+aside{
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+.side-icons{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.side-icons img{
+    width: 30px;
+}
+.side-icons p{
+    font-size: 10px;
+    margin: -5px;
+}
+.bars{
+    margin-top: 20px;
+}
+.main-container{
+    width: 100%;
+}
