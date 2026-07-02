@@ -8,3 +8,13 @@ html,body{
     font-family: 300;
     line-height: 1.4;
 }
+nav{
+    display: flex;
+    justify-content: space-between;
+}
+.center-nav{
+    display: flex;
+}
+.side-nav{
+    display: flex;
+}
