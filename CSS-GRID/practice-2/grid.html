@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>css-grid</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+        }
+        .main{
+            max-width: 1320px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: 20% 1fr 1fr;
+            grid-template-rows: 100px 200px 200px 100px;
+            gap: 20px;
+
+        }
+        header,footer{
+            background-color: green;
+            grid-column-start: 1;
+            grid-column-end: 4;
+            text-align: center;
+            color: white;
+            font-size: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        aside{
+            background-color: blueviolet;
+            grid-row: 2/4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #content1{
+            background-color: pink;
+            /* grid-column-start: 2;
+            grid-column-end: 4; */
+            grid-column: 2/4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #content3{
+            background-color: lightblue;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #content2{
+            background-color: rgb(240, 92, 92);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <header>Header</header>
+        <aside>SideBar</aside>
+        <div id="content1">Content1</div>
+        <div id="content2">Content2</div>
+        <div id="content3">Content3</div>
+        <footer>Footer</footer>
+    </div>
+</body>
+</html>
