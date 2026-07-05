@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
+        #gallery{
+            width: 100%;
+            padding: 40px 0px;
+            background-color: #ccc;
+        }
+        #gallery h2{
+            text-align: center;
+        }
+        .galleryMid{
+            max-width: 1320px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
+            gap: 20px;
+        }
+        .galleryItems img{
+            width: 100%;
+            height: 100%;
+        }
+        .galleryMid .galleryItems:nth-child(1),.galleryItems:nth-child(3),.galleryItems:nth-child(5), .galleryItems:nth-child(9){
+            grid-row:span 2;
+        }
+        .galleryItems:nth-child(10){
+            grid-column: span 3;
+        }
+    </style>
+</head>
+<body>
+    <section id="gallery">
+        <h2>Masonry Grid Gallery</h2>
+        <div class="galleryMid">
+            <div class="galleryItems">
+                <img src="images/pic1.jpg" alt="">
+            </div>
+            <div class="galleryItems">
+                <img src="images/pic2.jpg" alt="">
+            </div>
+            <div class="galleryItems">
+                <img src="images/pic3.jpg" alt="">
+            </div>
+            <div class="galleryItems">
+                <img src="images/pic4.jpg" alt="">
+            </div>
+            <div class="galleryItems">
+                <img src="images/pic5.jpg" alt="">
+            </div>
+            <div class="galleryItems">
+                <img src="images/pic6.jpg" alt="">
+            </div>
+            <div class="galleryItems">
+                <img src="images/pic7.jpg" alt="">
+            </div>
+            <div class="galleryItems">
+                <img src="images/pic8.jpg" alt="">
+            </div>
+            <div class="galleryItems">
+                <img src="images/pic9.jpg" alt="">
+            </div>
+            <div class="galleryItems">
+                <img src="images/pic10.jpg" alt="">
+            </div>
+        </div>
+    </section>
+</body>
+</html>
