@@ -8,35 +8,42 @@
 </head>
 <body>
     <div class="main">
-        <form action="">
+        <form action="" class="form1">
             <h1>Create Account</h1>
             <input type="email" placeholder="Enter Your Email">
             <input type="password" placeholder="Password">
             <input type="password" placeholder="Confirm Password">
             <div class="btns">
-                <button type="button">Next</button>
+                <button type="button" onclick="nextToForm2()">Next</button>
             </div>
         </form>
-        <form action="">
+        <form action="" class="form2">
             <h1>Personal Details</h1>
             <input type="text" placeholder="First Name">
             <input type="text" placeholder="Last Name">
             <input type="tel" placeholder="Mobile">
             <div class="btns">
-                <button type="button">Prev</button>
-                <button type="button">Next</button>
+                <button type="button" onclick="prevToForm1()">Prev</button>
+                <button type="button" onclick="nextToForm3()">Next</button>
             </div>
         </form>
-        <form action="">
+        <form action="" class="form3">
             <h1>Social Links</h1>
             <input type="text" placeholder="LinkedIn">
             <input type="text" placeholder="GitHub">
             <input type="text" placeholder="LeetCode">
             <div class="btns">
-                <button type="button">Prev</button>
+                <button type="button" onclick="prevToForm2()">Prev</button>
                 <button type="submit">Submit</button>
             </div>
         </form>
+        <div class="progress">
+            <div class="progressBar"></div>
+            <div class="steps">Step 1</div>
+            <div class="steps">Step 2</div>
+            <div class="steps">Step 3</div>
+        </div>
     </div>
 </body>
+<script src="login.js"></script>
 </html>
