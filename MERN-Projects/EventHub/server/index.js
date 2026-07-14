@@ -8,8 +8,8 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
-const eventRoutes = require('./routes/events');
-const bookingRoutes = require('./routes/booking');
+const eventRoutes = require('./routes/events.js');
+const bookingRoutes = require('./routes/booking.js');
 
 dotenv.config();
 
