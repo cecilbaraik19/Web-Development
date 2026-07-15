@@ -1,7 +1,7 @@
 {
   "name": "eventhub-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "EventHub Backend",
   "keywords": [
     "event",
     "booking"
@@ -9,10 +9,11 @@
   "license": "ISC",
   "author": "Cecil Baraik",
   "type": "commonjs",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed":"node seed.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
