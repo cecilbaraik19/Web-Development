@@ -16,6 +16,7 @@ header{
     margin: auto;
     display:flex;
     justify-content: space-between;
+    position: relative;
 }
 nav>ul{
     display: flex;
@@ -26,6 +27,34 @@ nav>ul>li{
 }
 nav>ul>li>a{
     color: white;
-    text-decoration: none
-    ;
+    text-decoration: none;
+}
+.megamenu{
+    position: absolute;
+    top: 100%;
+    width: 100%;
+    left: 0px;
+    opacity: 0;
+    visibility: hidden;
+    transition: 2s;
+    box-shadow: 0px 10px 2px 3px lightblue;
+    display: flex;
+    flex-wrap: wrap;
+}
+nav>ul>li:hover .megamenu{
+    opacity: 1;
+    visibility: visible;
+    top: 100%;
+}
+.megamenu-items{
+    flex-basis: 30%;
+    margin: 1.5%;
+}
+.megamenu-items ul li{
+    list-style: none;
+    padding: 7px;
+}
+.megamenu-items h3{
+    padding: 10px;
+    background: lightgray;
 }
