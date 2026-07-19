@@ -1,0 +1,31 @@
+*{
+    margin: 0px;
+    padding: 0px;
+    font-family: sans-serif;
+}
+header{
+    width: 100%;
+    background: black;
+}
+.logo img{
+    width: 100px;
+    height: 70px;
+}
+.container{
+    width: 1170px;
+    margin: auto;
+    display:flex;
+    justify-content: space-between;
+}
+nav>ul{
+    display: flex;
+}
+nav>ul>li{
+    padding: 30px;
+    list-style: none;
+}
+nav>ul>li>a{
+    color: white;
+    text-decoration: none
+    ;
+}
