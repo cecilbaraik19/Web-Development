@@ -21,3 +21,31 @@
     font-size: 4rem;
     color: rgb(0, 255, 34);
 }
+.settings{
+    position: absolute;
+    bottom: 30px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.settings .fa-cog{
+    font-size: 3rem;
+    color: greenyellow;
+}
+.settings-content{
+    display: flex;
+    gap: 1rem;
+}
+.settings-content input{
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+}
+.settings-content button{
+    padding: 0.5rem 1rem;
+    background-color: green;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    color:white;
+}
