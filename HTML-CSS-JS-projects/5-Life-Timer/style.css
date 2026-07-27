@@ -66,4 +66,8 @@
 }
 .time-container div{
     font-size: 4rem;
+    color: blueviolet;
+}
+.time-container h2 p{
+    color: rgb(138, 234, 28);
 }
