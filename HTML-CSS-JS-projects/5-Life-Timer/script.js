@@ -1,6 +1,6 @@
 let isDOBOpen = false;
 let dateOfBirth;
-const settingCoEl = document.getElementById("settingIcone");
+const settingCoEl = document.getElementById("settingIcon");
 const settingContentEl = document.getElementById("settingContent");
 const initialTextEl = document.getElementById("initialText");
 const afterDOBBtnTxtEl = document.getElementById("afterDOBBtnTxt");
