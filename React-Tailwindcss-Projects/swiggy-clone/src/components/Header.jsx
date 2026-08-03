@@ -22,8 +22,8 @@ export default function Header() {
     </div>
     <header className='p-3 shadow-xl'>
         <div className='max-w-[1200px] mx-auto flex items-center'>
-            <div className='w-[100px]'>
-                <img src="/images/logo.png" alt="" />
+            <div className='w-[100px] h-[70px]'>
+                <img className='h-[69px]' src="/images/logo.png" alt="" />
             </div>
             <div><span  className='font-bold border-b-[3px] border-[black]'>Ratu</span> Ranchi, Jharkhand, India <RxCaretDown fontSize={25} className='inline text-[#fc8019] cursor-pointer' onClick={showSideMenu}/></div>
         </div>
