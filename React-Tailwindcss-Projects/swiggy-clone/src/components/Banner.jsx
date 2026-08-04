@@ -10,7 +10,7 @@ export default function Banner() {
           alt=""
         />
         {/* Overlay */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center mt-[-17.5rem]">
+        <div className="absolute inset-0 flex flex-col items-center justify-center mt-[-20.5rem]">
           <h1 className="text-white text-5xl font-bold text-center">
             Order food. Discover best
             <br />
