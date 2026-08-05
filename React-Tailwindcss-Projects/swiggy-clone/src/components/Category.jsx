@@ -20,7 +20,7 @@ export default function () {
     }
     const prevSlide = () =>{
         if(slide == 0) return false;
-        setSlide(slide - 3)
+        setSlide(slide - 3);
     }
   return (
     <>
@@ -35,6 +35,21 @@ export default function () {
             <FaArrowRight />
           </div>
           </div>
+        </div>
+        <div className="flex overflow-hidden">
+            {
+                categories.map(
+                    (cat,index) => {
+                        return(
+                            <div style={{
+                                transform:` translateX(-${slide * 100}%)`
+                            }} key={index} className="w-[150px] shrink-0 duration-500">
+                                <img src={"" +cat.image} alt="" />
+                            </div>
+                        )
+                    }
+                )
+            }
         </div>
       </div>
     </>
