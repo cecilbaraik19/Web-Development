@@ -20,7 +20,7 @@ export default function Category () {
   };
   return (
     <>
-      <div className="max-w-[1200px] mx-auto">
+      <div className="max-w-[1200px] mx-auto mt-24">
         <div className="flex my-3 items-center justify-between">
           <div className="text-[25px] font-bold">What's on your mind?</div>
           <div className="flex">
@@ -52,6 +52,7 @@ export default function Category () {
           ))}
         </div>
       </div>
+      <hr className="my-6 border-[1px]" />
     </>
   );
 }
