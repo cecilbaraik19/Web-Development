@@ -38,17 +38,24 @@ export default function Header() {
     ]
   return (
     <>
-    <div className='black-overlay w-full h-full fixed duration-500' onClick={hideSideMenu} style={{
-        opacity: toggle ? 1 : 0,
-        visibility: toggle ? "visible" : "hidden"
-    }}>
-        <div onClick={(e) => {e.stopPropagation()}} className='w-[500px] bg-white h-full absolute duration-[400ms]'
-             style={{
-                left: toggle ? '0%' : '-100%'
-            }}
-        ></div>
-    </div>
-    <header className='p-3 shadow-xl'>
+    <div
+  onClick={hideSideMenu}
+  className={`fixed inset-0 z-40 transition-all duration-500 ${
+    toggle
+      ? "bg-black/70 visible opacity-100"
+      : "invisible opacity-0"
+  }`}
+>
+  <div
+    onClick={(e) => e.stopPropagation()}
+    className={`absolute left-0 top-0 h-full w-[500px] bg-white transition-transform duration-500 ${
+      toggle ? "translate-x-0" : "-translate-x-full"
+    }`}
+  >
+    {/* Side Menu */}
+  </div>
+</div>
+    <header className="fixed top-0 left-0 w-full z-50 bg-white shadow-xl">
         <div className='max-w-[1200px] mx-auto flex items-center'>
             <div className='w-[100px] h-[70px]'>
                 <img className='h-[69px]' src="/images/logo.png" alt="" />
