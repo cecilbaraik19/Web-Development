@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://cecilbaraik.dev/sitemap.xml
