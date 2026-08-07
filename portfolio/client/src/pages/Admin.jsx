@@ -13,9 +13,10 @@ import { useAdmin } from '../context/AdminContext.jsx';
 import { projectService } from '../services/projectService.js';
 import { certificationService } from '../services/certificationService.js';
 import { contactService } from '../services/contactService.js';
+import { journeyService } from '../services/journeyService.js';
 import { formatDate } from '../utils/formatDate.js';
 
-const TABS = ['Projects', 'Certifications', 'Messages'];
+const TABS = ['Projects', 'Certifications', 'Journey', 'Messages'];
 
 const inputCls =
   'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none transition-colors focus:border-accent/60 placeholder:text-muted/50';
@@ -55,6 +56,14 @@ const EMPTY_CERT = {
   credentialUrl: '',
   image: '',
   status: 'Planned',
+  order: 0,
+};
+
+const EMPTY_STEP = {
+  title: '',
+  description: '',
+  period: '',
+  status: 'next',
   order: 0,
 };
 
@@ -309,6 +318,120 @@ function CertificationsAdmin() {
   );
 }
 
+// ── Journey tab ───────────────────────────────────────────────
+function JourneyAdmin() {
+  const [steps, setSteps] = useState([]);
+  const [form, setForm] = useState(EMPTY_STEP);
+  const [editingId, setEditingId] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+
+  const load = useCallback(() => journeyService.getAll().then(setSteps), []);
+  useEffect(() => {
+    load().catch(() => {});
+  }, [load]);
+
+  const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
+
+  const submit = async (e) => {
+    e.preventDefault();
+    const payload = { ...form, order: Number(form.order) || 0 };
+    if (editingId) await journeyService.update(editingId, payload);
+    else await journeyService.create(payload);
+    setForm(EMPTY_STEP);
+    setEditingId(null);
+    setShowForm(false);
+    load();
+  };
+
+  const remove = async (id) => {
+    if (!window.confirm('Delete this journey step?')) return;
+    await journeyService.remove(id);
+    load();
+  };
+
+  return (
+    <div>
+      <button
+        data-testid="admin-add-step"
+        onClick={() => {
+          setForm(EMPTY_STEP);
+          setEditingId(null);
+          setShowForm((s) => !s);
+        }}
+        className="mb-6 flex items-center gap-2 rounded-full bg-accent px-5 py-2 font-mono text-xs font-semibold uppercase tracking-widest text-primary"
+      >
+        <FaPlus size={10} /> {showForm ? 'Close form' : 'Add step'}
+      </button>
+
+      {showForm && (
+        <form
+          data-testid="admin-step-form"
+          onSubmit={submit}
+          className="glass mb-8 grid gap-4 rounded-2xl p-6 sm:grid-cols-2"
+        >
+          <Field label="Title" value={form.title} onChange={set('title')} required data-testid="admin-step-title" />
+          <Field label="Period (e.g. 2024, Now, Next)" value={form.period} onChange={set('period')} />
+          <div className="sm:col-span-2">
+            <Field as="textarea" label="Description" value={form.description} onChange={set('description')} />
+          </div>
+          <Field as="select" label="Status" value={form.status} onChange={set('status')} data-testid="admin-step-status">
+            <option value="done">done</option>
+            <option value="current">current</option>
+            <option value="next">next</option>
+          </Field>
+          <Field label="Order" type="number" value={form.order} onChange={set('order')} />
+          <div className="sm:col-span-2">
+            <button
+              data-testid="admin-step-save"
+              type="submit"
+              className="rounded-full bg-accent px-6 py-2 font-mono text-xs font-semibold uppercase tracking-widest text-primary"
+            >
+              {editingId ? 'Update step' : 'Create step'}
+            </button>
+          </div>
+        </form>
+      )}
+
+      <div className="space-y-3">
+        {steps.map((s) => (
+          <div
+            key={s._id}
+            data-testid={`admin-step-row-${s._id}`}
+            className="glass flex flex-wrap items-center justify-between gap-3 rounded-xl px-5 py-4"
+          >
+            <div>
+              <p className="font-display text-sm font-semibold text-white">{s.title}</p>
+              <p className="font-mono text-[11px] text-muted">
+                {s.period} · {s.status} · order {s.order}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                data-testid={`admin-step-edit-${s._id}`}
+                onClick={() => {
+                  setEditingId(s._id);
+                  setForm({ ...EMPTY_STEP, ...s });
+                  setShowForm(true);
+                }}
+                className="glass rounded-lg p-2 text-muted hover:border-accent/50 hover:text-accent"
+              >
+                <FaEdit size={13} />
+              </button>
+              <button
+                data-testid={`admin-step-delete-${s._id}`}
+                onClick={() => remove(s._id)}
+                className="glass rounded-lg p-2 text-muted hover:border-red-400/50 hover:text-red-400"
+              >
+                <FaTrash size={13} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Messages tab ──────────────────────────────────────────────
 function MessagesAdmin() {
   const [messages, setMessages] = useState([]);
@@ -471,6 +594,7 @@ export default function Admin() {
 
             {tab === 'Projects' && <ProjectsAdmin />}
             {tab === 'Certifications' && <CertificationsAdmin />}
+            {tab === 'Journey' && <JourneyAdmin />}
             {tab === 'Messages' && <MessagesAdmin />}
           </>
         )}

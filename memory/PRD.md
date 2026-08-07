@@ -15,15 +15,19 @@ Cecil Baraik — self-taught developer learning MERN, AWS, networking and cybers
 
 ## Implemented (2026-08-07)
 - All sections: Navbar (sticky, mobile hamburger), Hero (typing, particles, floating icons, parallax), Marquee, About (counters, profile placeholder), Skills (current + "Currently Learning" roadmap), Projects (filter/search/pagination, generated covers), Journey timeline, Certifications (Earned/Planned), Learning Now (progress bars), GitHub Stats placeholders, Contact (validated, saves to MongoDB), Footer with disclaimer
-- Admin page `/admin`: key login, CRUD for Projects + Certifications, Messages inbox
+- Admin page `/admin`: key login, CRUD for Projects + Certifications + Journey steps, Messages inbox
 - API: /api/projects|certifications|contact|journey|skills|admin/login + /api/health
 - SEO: meta/OG tags, favicon.svg, robots.txt, sitemap.xml, placeholder resume.pdf
 - README with full install/MongoDB Atlas/Vercel/Render instructions
 - Verified: all endpoints curled (CRUD, validation, auth guard); e2e browser test of filters, pagination, contact submit, admin login
 
+## Iteration 2 (2026-08-07)
+- Live GitHub stats: ghchart contributions + github-profile-summary-cards (stats, languages) with username preflight via api.github.com and dashed-placeholder fallback when the username is invalid or a service is down
+- Resume button polish: shine sweep, bouncing download icon, PDF tag, spring hover/tap
+- Journey admin tab: full CRUD UI for timeline steps (title/description/period/status/order)
+- Note: user provided no real GitHub/LinkedIn/email or resume file — placeholders remain in client/src/config/site.js
+
 ## Backlog
-- P1: Replace placeholder links/email in client/src/config/site.js; drop real resume.pdf
-- P1: Wire GitHub stats panels to live cards (github-readme-stats / ghchart)
+- P1: Replace placeholder links/email in client/src/config/site.js (user must supply real values); drop real resume.pdf into client/public
 - P2: Rate limiting + helmet on contact endpoint for production hardening
-- P2: Journey admin UI (API exists, no admin tab yet)
 - P2: Image upload instead of URL-only (needs object storage)

@@ -144,14 +144,22 @@ export default function Hero() {
           >
             View Projects
           </button>
-          <a
+          <motion.a
             data-testid="hero-download-resume"
             href={site.resumeUrl}
             download
-            className="glass flex items-center gap-2 rounded-full px-7 py-3 font-mono text-sm uppercase tracking-widest text-white transition-colors hover:border-accent/50 hover:text-accent"
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            className="group glass relative flex items-center gap-2 overflow-hidden rounded-full px-7 py-3 font-mono text-sm uppercase tracking-widest text-white transition-colors hover:border-accent/50 hover:text-accent"
           >
-            <FaDownload /> Resume
-          </a>
+            {/* Shine sweep on hover */}
+            <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-500 group-hover:translate-x-full" />
+            <FaDownload className="relative transition-transform duration-300 group-hover:translate-y-0.5 group-hover:animate-bounce" />
+            <span className="relative">Resume</span>
+            <span className="relative rounded border border-accent/30 px-1.5 py-0.5 text-[9px] text-accent">
+              PDF
+            </span>
+          </motion.a>
           <div className="flex gap-3">
             <a
               data-testid="hero-github"

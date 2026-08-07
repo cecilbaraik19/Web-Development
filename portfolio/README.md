@@ -85,7 +85,7 @@ The database **seeds itself** on first boot (sample projects, certifications, jo
 
 ## 5. Admin Page
 
-Visit `/admin`, enter your `ADMIN_KEY`, and you can add, edit and delete **projects** and **certifications**, and read/delete **contact messages** — no redeploy needed.
+Visit `/admin`, enter your `ADMIN_KEY`, and you can add, edit and delete **projects**, **certifications** and **journey steps**, and read/delete **contact messages** — no redeploy needed.
 
 ## 6. Deploying
 
@@ -106,7 +106,7 @@ Visit `/admin`, enter your `ADMIN_KEY`, and you can add, edit and delete **proje
 - **Your links/name/resume**: `client/src/config/site.js` (one file updates everywhere). Drop your resume at `client/public/resume.pdf`.
 - **Skills list**: `server/utils/skillsData.js`
 - **Journey timeline**: admin-ready via `PUT/POST /api/journey`, or edit `server/utils/seed.js` and reseed
-- **GitHub stats panels**: `client/src/components/GithubStats.jsx` has notes on connecting live cards
+- **GitHub stats panels**: live by default (ghchart + github-profile-summary-cards) — just set `githubUsername` in `client/src/config/site.js`; cards degrade to placeholders if the username is invalid
 - **Domain/SEO**: `client/index.html`, `client/public/sitemap.xml`, `client/public/robots.txt`
 
 ## API Overview
