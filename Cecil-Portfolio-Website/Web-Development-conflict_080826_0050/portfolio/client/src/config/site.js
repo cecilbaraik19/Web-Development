@@ -9,7 +9,7 @@ export const site = {
     'Learning Full Stack Development, Cloud, Networking and Cybersecurity while building practical projects.',
 
   // Replace with your real links
-  email: 'cecilbaraik19@gmail.com',
+  email: 'mailto:cecilbaraik19@gmail.com',
   github: 'https://github.com/cecilbaraik19',
   linkedin: 'https://www.linkedin.com/in/cecil-baraik-b8150b339',
 
