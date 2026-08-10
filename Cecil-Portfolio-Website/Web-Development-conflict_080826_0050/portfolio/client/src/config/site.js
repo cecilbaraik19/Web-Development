@@ -9,15 +9,15 @@ export const site = {
     'Learning Full Stack Development, Cloud, Networking and Cybersecurity while building practical projects.',
 
   // Replace with your real links
-  email: 'cecil.baraik@example.com',
-  github: 'https://github.com/cecilbaraik',
-  linkedin: 'https://www.linkedin.com/in/cecilbaraik',
+  email: 'cecilbaraik19@gmail.com',
+  github: 'https://github.com/cecilbaraik19',
+  linkedin: 'www.linkedin.com/in/cecil-baraik-b8150b339',
 
   // Drop your resume at client/public/resume.pdf and this just works
   resumeUrl: '/resume.pdf',
 
   // Used by the GitHub stats section when you connect it later
-  githubUsername: 'cecilbaraik',
+  githubUsername: 'cecilbaraik19',
 
   // Update after deployment (used in SEO tags, sitemap)
   domain: 'https://cecilbaraik.dev',
