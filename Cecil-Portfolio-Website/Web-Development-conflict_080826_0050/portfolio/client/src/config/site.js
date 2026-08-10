@@ -11,7 +11,7 @@ export const site = {
   // Replace with your real links
   email: 'cecilbaraik19@gmail.com',
   github: 'https://github.com/cecilbaraik19',
-  linkedin: 'www.linkedin.com/in/cecil-baraik-b8150b339',
+  linkedin: 'https://www.linkedin.com/in/cecil-baraik-b8150b339',
 
   // Drop your resume at client/public/resume.pdf and this just works
   resumeUrl: '/resume.pdf',
