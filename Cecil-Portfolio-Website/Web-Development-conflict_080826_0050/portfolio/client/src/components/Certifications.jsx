@@ -1,77 +1,92 @@
-import { useEffect, useState } from 'react';
 import { FaAward, FaExternalLinkAlt } from 'react-icons/fa';
 import { SectionHeading } from './SectionHeading.jsx';
 import { Reveal } from './Reveal.jsx';
 import { GlowCard } from './GlowCard.jsx';
-import { certificationService } from '../services/certificationService.js';
-import { formatDate } from '../utils/formatDate.js';
 
-const STATUS_STYLE = {
-  Earned: 'border-success/40 bg-success/10 text-success',
-  'In Progress': 'border-accent/40 bg-accent/10 text-accent',
-  Planned: 'border-dashed border-white/20 text-muted',
-};
+const certificates = [
+  {
+    id: 1,
+    title: 'Diploma in Information Technology',
+    issuer: 'Argus Academy, Ranchi',
+    date: '2024',
+    status: 'Grade: A+',
+    image: '/certificates/Diploma_Information_Technology_Argus_Academy.jpeg',
+  },
+  {
+    id: 2,
+    title: 'MERN Full Stack Development',
+    issuer: 'Briztech Infosystems Pvt. Ltd., Ranchi',
+    date: '2025',
+    status: 'Grade: A+',
+    image: '/certificates/MERN_Full_Stack_Briztech.jpeg',
+  },
+  {
+    id: 3,
+    title: 'Hack Horizon 2.0',
+    issuer: 'ARKA JAIN University, Jharkhand',
+    date: 'April 2026',
+    status: 'Certificate of Participation',
+    image: '/certificates/Hack_Horizon_2_Certificate.jpeg',
+  },
+];
 
 export default function Certifications() {
-  const [certs, setCerts] = useState([]);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    certificationService
-      .getAll()
-      .then(setCerts)
-      .catch(() => setError(true));
-  }, []);
-
   return (
-    <section id="certifications" data-testid="certifications-section" className="mx-auto max-w-6xl px-6 py-28">
+    <section id="certifications">
       <SectionHeading
-        number="05"
-        eyebrow="Certifications"
-        title="Proof of work."
-        description="What I've earned so far — and the milestones already on the board."
+        eyebrow="Credentials"
+        title="Certifications & Achievements"
+        description="Technical certifications, training, and hackathon participation."
       />
 
-      {error && (
-        <p className="font-mono text-sm text-muted">Could not load certifications — is the backend running?</p>
-      )}
-
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {certs.map((cert, i) => (
-          <Reveal key={cert._id} delay={(i % 3) * 0.08}>
-            <GlowCard data-testid={`cert-card-${cert._id}`} className="h-full p-6" hover={cert.status === 'Earned'}>
-              <div className="mb-4 flex items-start justify-between">
-                <FaAward
-                  className={`text-2xl ${cert.status === 'Earned' ? 'text-accent' : 'text-muted/50'}`}
+        {certificates.map((cert, i) => (
+          <Reveal key={cert.id} delay={(i % 3) * 0.08}>
+            <GlowCard className="h-full overflow-hidden" hover>
+
+              {/* Certificate Image */}
+              <div className="bg-black/20 p-3">
+                <img
+                  src={cert.image}
+                  alt={`${cert.title} certificate`}
+                  className="h-56 w-full object-contain rounded-lg"
                 />
-                <span
-                  className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider ${STATUS_STYLE[cert.status]}`}
-                >
-                  {cert.status === 'Planned' ? 'Up Next' : cert.status}
-                </span>
               </div>
-              <h3
-                className={`font-display text-base font-semibold ${
-                  cert.status === 'Planned' ? 'text-muted' : 'text-white'
-                }`}
-              >
-                {cert.title}
-              </h3>
-              <p className="mt-1 font-mono text-xs text-muted">
-                {cert.issuer}
-                {cert.issueDate ? ` · ${formatDate(cert.issueDate)}` : ''}
-              </p>
-              {cert.credentialUrl && (
+
+              {/* Certificate Details */}
+              <div className="p-6">
+
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <FaAward className="text-2xl text-accent" />
+
+                  <span className="rounded-full border border-success/40 bg-success/10 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-success">
+                    Earned
+                  </span>
+                </div>
+
+                <h3 className="font-display text-base font-semibold text-white">
+                  {cert.title}
+                </h3>
+
+                <p className="mt-2 font-mono text-xs leading-relaxed text-muted">
+                  {cert.issuer}
+                </p>
+
+                <p className="mt-2 font-mono text-xs text-muted">
+                  {cert.date} · {cert.status}
+                </p>
+
                 <a
-                  data-testid={`cert-link-${cert._id}`}
-                  href={cert.credentialUrl}
+                  href={cert.image}
                   target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 inline-flex items-center gap-1.5 font-mono text-xs text-accent hover:underline"
+                  rel="noopener noreferrer"
+                  className="mt-5 inline-flex items-center gap-1.5 font-mono text-xs text-accent hover:underline"
                 >
-                  View credential <FaExternalLinkAlt size={10} />
+                  View Certificate
+                  <FaExternalLinkAlt size={10} />
                 </a>
-              )}
+
+              </div>
             </GlowCard>
           </Reveal>
         ))}

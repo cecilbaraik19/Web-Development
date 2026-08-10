@@ -5,7 +5,15 @@ import { Reveal } from './Reveal.jsx';
 import ProjectCard from './ProjectCard.jsx';
 import { projectService } from '../services/projectService.js';
 
-const CATEGORIES = ['All', 'Frontend', 'Backend', 'MERN', 'Cybersecurity', 'Cloud'];
+const CATEGORIES = [
+  'All',
+  'Frontend',
+  'Backend',
+  'MERN',
+  'Cybersecurity',
+  'Cloud',
+];
+
 const PAGE_SIZE = 6;
 
 export default function Projects() {
@@ -13,7 +21,13 @@ export default function Projects() {
   const [input, setInput] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [data, setData] = useState({ projects: [], pages: 1, total: 0 });
+
+  const [data, setData] = useState({
+    projects: [],
+    pages: 1,
+    total: 0,
+  });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -23,35 +37,80 @@ export default function Projects() {
       setSearch(input);
       setPage(1);
     }, 350);
+
     return () => clearTimeout(t);
   }, [input]);
 
   useEffect(() => {
     setLoading(true);
     setError(false);
+
     projectService
-      .getAll({ category, search, page, limit: PAGE_SIZE })
-      .then(setData)
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+      .getAll({
+        category,
+        search,
+        page,
+        limit: PAGE_SIZE,
+      })
+      .then((result) => {
+        // Make sure the response always has the expected structure
+        const safeData = result || {};
+
+        setData({
+          projects: Array.isArray(safeData.projects)
+            ? safeData.projects
+            : Array.isArray(safeData)
+              ? safeData
+              : [],
+
+          pages:
+            typeof safeData.pages === 'number'
+              ? safeData.pages
+              : 1,
+
+          total:
+            typeof safeData.total === 'number'
+              ? safeData.total
+              : 0,
+        });
+      })
+      .catch(() => {
+        setError(true);
+
+        setData({
+          projects: [],
+          pages: 1,
+          total: 0,
+        });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [category, search, page]);
 
   return (
-    <section id="projects" data-testid="projects-section" className="mx-auto max-w-6xl px-6 py-28">
+    <section id="projects">
+
       <SectionHeading
-        number="03"
-        eyebrow="Projects"
-        title="Things I've built."
-        description="Each project taught me something new. Managed from the admin page — no redeploy needed to add more."
+        number="04"
+        eyebrow="Selected Work"
+        title="Projects"
+        description="A selection of projects built while learning and exploring software development."
       />
 
       {/* Filters */}
       <Reveal className="mb-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap gap-2" data-testid="project-filters">
+
+        <div
+          className="flex flex-wrap gap-2"
+          data-testid="project-filters"
+        >
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
-              data-testid={`filter-${cat.toLowerCase().replace(' ', '-')}`}
+              data-testid={`filter-${cat
+                .toLowerCase()
+                .replace(' ', '-')}`}
               onClick={() => {
                 setCategory(cat);
                 setPage(1);
@@ -68,7 +127,11 @@ export default function Projects() {
         </div>
 
         <div className="relative">
-          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={13} />
+          <FaSearch
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+            size={13}
+          />
+
           <input
             data-testid="project-search"
             value={input}
@@ -77,27 +140,41 @@ export default function Projects() {
             className="w-full rounded-full border border-white/10 bg-white/5 py-2 pl-9 pr-4 font-mono text-sm text-white outline-none transition-colors focus:border-accent/60 lg:w-64"
           />
         </div>
+
       </Reveal>
 
       {/* Grid */}
+
       {loading ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="glass h-80 animate-pulse rounded-2xl" />
+            <div
+              key={i}
+              className="glass h-80 animate-pulse rounded-2xl"
+            />
           ))}
         </div>
       ) : error ? (
-        <p data-testid="projects-error" className="font-mono text-sm text-muted">
+        <p
+          data-testid="projects-error"
+          className="font-mono text-sm text-muted"
+        >
           Could not load projects — is the backend running?
         </p>
       ) : data.projects.length === 0 ? (
-        <p data-testid="projects-empty" className="font-mono text-sm text-muted">
+        <p
+          data-testid="projects-empty"
+          className="font-mono text-sm text-muted"
+        >
           No projects match that search.
         </p>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {data.projects.map((project, i) => (
-            <Reveal key={project._id} delay={(i % 3) * 0.08}>
+            <Reveal
+              key={project._id || project.id || i}
+              delay={(i % 3) * 0.08}
+            >
               <ProjectCard project={project} />
             </Reveal>
           ))}
@@ -105,8 +182,12 @@ export default function Projects() {
       )}
 
       {/* Pagination */}
+
       {data.pages > 1 && (
-        <div data-testid="project-pagination" className="mt-12 flex items-center justify-center gap-2">
+        <div
+          data-testid="project-pagination"
+          className="mt-12 flex items-center justify-center gap-2"
+        >
           <button
             data-testid="pagination-prev"
             disabled={page === 1}
@@ -115,6 +196,7 @@ export default function Projects() {
           >
             <FaChevronLeft size={12} />
           </button>
+
           {Array.from({ length: data.pages }).map((_, i) => (
             <button
               key={i}
@@ -129,6 +211,7 @@ export default function Projects() {
               {i + 1}
             </button>
           ))}
+
           <button
             data-testid="pagination-next"
             disabled={page === data.pages}
@@ -139,6 +222,7 @@ export default function Projects() {
           </button>
         </div>
       )}
+
     </section>
   );
 }
