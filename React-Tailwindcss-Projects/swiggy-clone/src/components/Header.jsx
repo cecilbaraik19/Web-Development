@@ -95,32 +95,28 @@ export default function Header() {
           <nav className="flex items-center gap-8">
 
             {links.map((link, index) => (
-              <a
+              <button
                 key={index}
-                href={link.name === "Search" ? "#search" : "#"}
-                onClick={(e) => {
-                  if (link.name !== "Search") {
-                    e.preventDefault();
-                  }
-                }}
+                type="button"
                 className="flex items-center gap-2 text-gray-800 hover:text-orange-500 transition"
               >
-
+                {/* Icon */}
                 <span className="text-xl">
                   {link.icon}
                 </span>
 
+                {/* Name */}
                 <span>
                   {link.name}
                 </span>
 
+                {/* New badge */}
                 {link.sup && (
                   <sup className="text-orange-500 text-xs font-bold">
                     {link.sup}
                   </sup>
                 )}
-
-              </a>
+              </button>
             ))}
 
           </nav>
