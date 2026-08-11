@@ -16,15 +16,36 @@ const Home = () => {
     }, [search]);
 
     const fetchEvents = async () => {
-        try {
-            const { data } = await api.get(`/events?search=${search}`);
+    try {
+        setLoading(true);
+
+        const response = await api.get(`/events?search=${search}`);
+
+        console.log("FULL API RESPONSE:", response);
+        console.log("RESPONSE DATA:", response.data);
+        console.log("IS ARRAY:", Array.isArray(response.data));
+        console.log("EVENTS FIELD:", response.data?.events);
+        console.log("EVENTS FIELD IS ARRAY:", Array.isArray(response.data?.events));
+
+        const data = response.data;
+
+        if (Array.isArray(data)) {
             setEvents(data);
-        } catch (error) {
-            console.error('Error fetching events:', error);
-        } finally {
-            setLoading(false);
+        } else if (Array.isArray(data?.events)) {
+            setEvents(data.events);
+        } else {
+            console.error("Unexpected API response:", data);
+            setEvents([]);
         }
-    };
+
+    } catch (error) {
+        console.error("Error fetching events:", error);
+        console.error("Error response:", error.response?.data);
+        setEvents([]);
+    } finally {
+        setLoading(false);
+    }
+};
 
     return (
         <div className="flex flex-col min-h-screen">

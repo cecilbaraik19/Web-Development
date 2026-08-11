@@ -8,7 +8,7 @@
   ],
   "license": "ISC",
   "author": "Cecil Baraik",
-  "type": "commonjs",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
