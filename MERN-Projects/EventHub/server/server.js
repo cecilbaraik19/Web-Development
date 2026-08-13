@@ -7,6 +7,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 
 import eventRoutes from "./routes/eventRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
 
 import Event from "./models/Events.js";
 
@@ -18,13 +20,23 @@ const app = express();
 // MIDDLEWARE
 // ========================================
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://mern-eventhub.vercel.app"
+];
+
 app.use(
   cors({
-    origin: "https://mern-eventhub.vercel.app",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
-
 app.use(express.json());
 
 // ========================================
@@ -43,6 +55,8 @@ app.get("/", (req, res) => {
 // ========================================
 
 app.use("/api/events", eventRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 // ========================================
 // PORT
