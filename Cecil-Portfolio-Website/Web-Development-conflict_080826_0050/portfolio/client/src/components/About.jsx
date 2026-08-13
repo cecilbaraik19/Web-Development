@@ -112,7 +112,7 @@ export default function About() {
           <Reveal delay={0.2}>
             <div ref={statsRef} className="mt-10 grid grid-cols-3 gap-6">
               <Stat
-                end={10}
+                end={2}
                 suffix="+"
                 label="Projects Built"
                 started={statsVisible}
@@ -124,7 +124,7 @@ export default function About() {
                 started={statsVisible}
               />
               <Stat
-                end={2}
+                end={3}
                 suffix=""
                 label="Certifications Earned"
                 started={statsVisible}
