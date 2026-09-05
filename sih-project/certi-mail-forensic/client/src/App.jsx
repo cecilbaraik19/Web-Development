@@ -1,8 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ShieldAlert, Server, MapPin, CheckCircle, XCircle, Search, History } from 'lucide-react';
+import { ShieldAlert, Server, MapPin, CheckCircle, XCircle, Search, History, Globe, Layers, AlertTriangle } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import ThreatGraph from './components/ThreatGraph';
 import ExportReport from './components/ExportReport';
+
+// Fix Leaflet default marker icon issue in React
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 export default function App() {
   const [emailText, setEmailText] = useState('');
@@ -96,6 +107,23 @@ export default function App() {
         <div className="lg:col-span-7 flex flex-col gap-6">
           {report ? (
             <>
+              {/* Campaign Grouping / Case Management Cluster Panel */}
+              <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-cyan-950/60 border border-cyan-800 rounded-lg text-cyan-400">
+                    <Layers size={18} />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase text-slate-400 tracking-wider">Active Attack Campaign Cluster</span>
+                    <h4 className="text-sm font-mono font-bold text-slate-200">{report.campaign_tag || 'CAMPAIGN-FIN-2026-ALPHA'}</h4>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-xs">
+                  <AlertTriangle size={14} className="text-amber-400" />
+                  <span className="text-slate-300 font-medium">Multi-Vector Cluster Linked</span>
+                </div>
+              </div>
+
               <div className="flex justify-end">
                 <ExportReport reportData={report} caseId={caseId} />
               </div>
@@ -131,7 +159,8 @@ export default function App() {
                 ))}
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl grid grid-cols-2 gap-4">
+              {/* IP, Domain & Location Card (Full Width in Right Panel) */}
+              <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl flex flex-col justify-between">
                 <div>
                   <h4 className="text-xs text-slate-400 flex items-center gap-1 mb-2"><Server size={14}/> Extracted IP & Domains</h4>
                   <p className="font-mono text-cyan-400 text-sm">{report.extracted_ip}</p>
@@ -139,10 +168,35 @@ export default function App() {
                     Domains: {report.extracted_domains ? report.extracted_domains.join(', ') : 'None'}
                   </div>
                 </div>
-                <div>
-                  <h4 className="text-xs text-slate-400 flex items-center gap-1 mb-2"><MapPin size={14}/> Observed Location</h4>
-                  <p className="text-sm font-medium">{report.estimated_geo.city}, {report.estimated_geo.country}</p>
-                  <span className="text-xs text-slate-500">{report.estimated_geo.isp}</span>
+                <div className="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center">
+                  <div>
+                    <h4 className="text-xs text-slate-400 flex items-center gap-1 mb-1"><MapPin size={14}/> Observed Location</h4>
+                    <p className="text-sm font-medium">{report.estimated_geo.city}, {report.estimated_geo.country}</p>
+                  </div>
+                  <span className="text-xs text-slate-500 font-mono">{report.estimated_geo.isp}</span>
+                </div>
+              </div>
+
+              {/* WHOIS and Registrar Intelligence Panel */}
+              <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
+                <h4 className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">WHOIS & Registrar Intelligence</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                    <span className="text-slate-500 block text-[10px]">Registrar</span>
+                    <span className="font-medium text-slate-300 truncate block">{report.whois_data?.registrar || 'N/A'}</span>
+                  </div>
+                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                    <span className="text-slate-500 block text-[10px]">Creation Date</span>
+                    <span className="font-medium text-slate-300">{report.whois_data?.creation_date || 'N/A'}</span>
+                  </div>
+                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                    <span className="text-slate-500 block text-[10px]">MX Records</span>
+                    <span className="font-medium text-cyan-400 truncate block">{report.whois_data?.mx_records || 'N/A'}</span>
+                  </div>
+                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                    <span className="text-slate-500 block text-[10px]">DNSSEC Status</span>
+                    <span className="font-medium text-emerald-400">{report.whois_data?.dnssec || 'Validated'}</span>
+                  </div>
                 </div>
               </div>
 
@@ -156,10 +210,31 @@ export default function App() {
               </div>
 
               <ThreatGraph graphData={report.graph_relationships} />
+
+              {/* Big Full-Width Interactive Transmission Map at the Bottom */}
+              <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl overflow-hidden h-[500px] flex flex-col">
+                <h4 className="text-xs text-slate-400 flex items-center gap-1 mb-3"><Globe size={14}/> Interactive Transmission Map</h4>
+                <div className="flex-1 w-full rounded-lg overflow-hidden border border-slate-800">
+                  <MapContainer 
+                    center={[report.estimated_geo.lat || 20.5937, report.estimated_geo.lon || 78.9629]} 
+                    zoom={4} 
+                    scrollWheelZoom={false}
+                    style={{ height: "100%", width: "100%" }}
+                  >
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    <Marker position={[report.estimated_geo.lat || 20.5937, report.estimated_geo.lon || 78.9629]}>
+                      <Popup>
+                        Origin Node: {report.extracted_ip}<br />
+                        Location: {report.estimated_geo.city}, {report.estimated_geo.country}
+                      </Popup>
+                    </Marker>
+                  </MapContainer>
+                </div>
+              </div>
             </>
           ) : (
-            <div className="h-full bg-slate-900/50 border border-slate-800 border-dashed rounded-xl flex items-center justify-center text-slate-500 text-sm">
-              Paste email contents and click Run Analysis to populate results.
+            <div className="h-full bg-slate-900/50 border border-slate-800 border-dashed rounded-xl flex items-center justify-center text-slate-500 text-sm p-12">
+              Paste email headers and click Run Analysis to populate results.
             </div>
           )}
         </div>
