@@ -1,3 +1,7 @@
+import dns from 'dns';
+// Force Node.js to use Google's DNS servers directly, bypassing local network blocks
+dns.setServers(['8.8.8.8', '1.1.1.1']);
+
 import express from 'express';
 import cors from 'cors';
 import axios from 'axios';
@@ -12,21 +16,26 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Connect MongoDB
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/mear_ai_forensics';
-mongoose
-  .connect(MONGO_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('MongoDB connection error:', err.message));
+
+// Connect MongoDB 
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/certimailforensic';
+
+mongoose.connect(MONGODB_URI, {
+  dbName: 'certimailforensic',
+  family: 4,               // IPv4 force karega taaki DNS routing block na ho
+  serverSelectionTimeoutMS: 10000 // 10 seconds mein connect ya fail hoga, hang nahi rahega
+})
+.then(() => console.log(`Connected to MongoDB. Active Database: ${mongoose.connection.name}`))
+.catch((err) => console.error('MongoDB connection error:', err.message));
 
 // Routes
 app.use('/api/intel', threatIntelRoutes);
 
 app.post('/api/investigate', async (req, res) => {
   try {
+    console.log('--> Incoming request received at /api/investigate');
     const { emailContent } = req.body;
 
-    // Use fallback URL if process.env.PYTHON_AI_URL is undefined
     const pythonBaseUrl = process.env.PYTHON_AI_URL || 'http://127.0.0.1:8000';
 
     const aiResponse = await axios.post(`${pythonBaseUrl}/analyze`, {
@@ -34,6 +43,7 @@ app.post('/api/investigate', async (req, res) => {
     });
 
     const data = aiResponse.data;
+    console.log('--> AI Analysis received. Verdict:', data.verdict);
 
     const newRecord = new Investigation({
       rawEmail: emailContent,
@@ -47,6 +57,7 @@ app.post('/api/investigate', async (req, res) => {
     });
 
     await newRecord.save();
+    console.log('--> SUCCESS: Saved to database with ID:', newRecord._id);
 
     return res.json({
       status: 'success',
@@ -54,7 +65,7 @@ app.post('/api/investigate', async (req, res) => {
       caseId: newRecord._id,
     });
   } catch (error) {
-    console.error('Error in investigation endpoint:', error.message);
+    console.error('--> ERROR in investigation endpoint:', error.response?.data || error.message);
     res.status(500).json({ status: 'error', message: 'Failed to process AI investigation' });
   }
 });
