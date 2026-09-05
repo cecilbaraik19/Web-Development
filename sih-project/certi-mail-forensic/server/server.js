@@ -18,6 +18,7 @@ mongoose
   .connect(MONGO_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.error('MongoDB connection error:', err.message));
+
 // Routes
 app.use('/api/intel', threatIntelRoutes);
 
@@ -25,7 +26,10 @@ app.post('/api/investigate', async (req, res) => {
   try {
     const { emailContent } = req.body;
 
-    const aiResponse = await axios.post(`${process.env.PYTHON_AI_URL}/analyze`, {
+    // Use fallback URL if process.env.PYTHON_AI_URL is undefined
+    const pythonBaseUrl = process.env.PYTHON_AI_URL || 'http://127.0.0.1:8000';
+
+    const aiResponse = await axios.post(`${pythonBaseUrl}/analyze`, {
       raw_text: emailContent,
     });
 
