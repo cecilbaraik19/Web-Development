@@ -24,6 +24,7 @@ export default function App() {
 
   const fetchHistory = async () => {
     try {
+      const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://certimail-forensic.onrender.com';
       const res = await axios.get(`${BACKEND_URL}/api/history`);
       setHistory(res.data);
     } catch (err) {
@@ -39,6 +40,7 @@ export default function App() {
     if (!emailText) return;
     setLoading(true);
     try {
+      
       const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://certimail-forensic.onrender.com';
 
       const response = await axios.post(`${BACKEND_URL}/api/investigate`, {
