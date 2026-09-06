@@ -39,7 +39,7 @@ export default function App() {
     if (!emailText) return;
     setLoading(true);
     try {
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://certimail-forensic.onrender.com';
+      const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://certimail-forensic.onrender.com';
 
       const response = await axios.post(`${BACKEND_URL}/api/investigate`, {
             emailContent: emailText
