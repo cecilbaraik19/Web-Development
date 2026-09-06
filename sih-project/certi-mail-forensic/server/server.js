@@ -16,6 +16,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'success', 
+    message: 'CertiMail Forensic Backend is Live!',
+    endpoints: {
+      investigate: 'POST /api/investigate',
+      history: 'GET /api/history',
+      intel: 'GET /api/intel'
+    }
+  });
+});
 
 // Connect MongoDB 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/certimailforensic';
