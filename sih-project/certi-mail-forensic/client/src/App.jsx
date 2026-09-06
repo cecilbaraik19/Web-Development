@@ -24,7 +24,7 @@ export default function App() {
 
   const fetchHistory = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/history');
+      const res = await axios.get(`${BACKEND_URL}/api/history`);
       setHistory(res.data);
     } catch (err) {
       console.error('Failed to load history');
