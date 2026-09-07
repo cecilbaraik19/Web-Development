@@ -42,12 +42,12 @@ export default function App() {
       const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://certimail-forensic.onrender.com';
       const response = await axios.post(`${BACKEND_URL}/api/investigate`, {
         emailContent: emailText
-      });
+      }, { timeout: 60000 });
       setReport(response.data.report);
       setCaseId(response.data.caseId);
       fetchHistory();
     } catch (err) {
-      alert('Error connecting to backend server');
+      alert('Error connecting to backend server or Python service timeout.');
     } finally {
       setLoading(false);
     }
