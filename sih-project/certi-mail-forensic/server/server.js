@@ -44,47 +44,19 @@ app.post('/api/investigate', async (req, res) => {
     console.log('--> Incoming request received at /api/investigate');
     const { emailContent } = req.body;
 
-    let data;
-    try {
-      const pythonBaseUrl = process.env.PYTHON_AI_URL || 'https://certimail-forensic.onrender.com';
-      const aiResponse = await axios.post(`${pythonBaseUrl}/analyze`, {
-        raw_text: emailContent,
-      }, { timeout: 15000 });
-      data = aiResponse.data;
-    } catch (aiErr) {
-      console.log('--> Python AI service offline, using presentation mock fallback.');
-      // Presentation Safe Fallback Data (Taki live demo mein error na aaye)
-      data = {
-        verdict: "MALICIOUS",
-        risk_score: 85,
-        confidence: 95,
-        campaign_tag: "CAMPAIGN-FIN-2026-ALPHA",
-        authentication: { spf: "FAIL", dkim: "FAILED", dmarc: "REJECT" },
-        extracted_ip: "185.220.101.5",
-        extracted_domains: ["suspicious-secure-login.com"],
-        urls_found: 2,
-        estimated_geo: { country: "Russia", city: "Moscow", isp: "Tor Exit Node Provider", lat: 55.7558, lon: 37.6173 },
-        whois_data: { registrar: "NameCheap Privacy", creation_date: "2026-03-01", mx_records: "mx.suspicious.com", dnssec: "Unverified" },
-        nlp_indicators: ["Detected risk cue: 'urgent'", "Detected risk cue: 'verify account'", "Suspicious IP origin match"],
-        graph_relationships: {
-          nodes: [
-            { id: "suspicious-secure-login.com", label: "Domain: suspicious-secure-login.com", type: "domain" },
-            { id: "185.220.101.5", label: "IP: 185.220.101.5", type: "ip" },
-            { id: "Tor Exit Node Provider", label: "ISP: Tor Exit Node", type: "isp" }
-          ],
-          links: [
-            { source: "suspicious-secure-login.com", target: "185.220.101.5", relation: "SENT_VIA" },
-            { source: "185.220.101.5", target: "Tor Exit Node Provider", relation: "HOSTED_ON" }
-          ]
-        }
-      };
-    }
+    const pythonBaseUrl = process.env.PYTHON_AI_URL || 'http://localhost:8000';
+    
+    // Fetching real data directly from Python backend service
+    const aiResponse = await axios.post(`${pythonBaseUrl}/analyze`, {
+      raw_text: emailContent,
+    }, { timeout: 15000 });
+    
+    const data = aiResponse.data;
 
-    // Database save with error shield for presentation
     let recordId = "demo-case-998877";
     try {
       const newRecord = new Investigation({
-        rawEmail: emailContent || "Presentation Demo Raw Header",
+        rawEmail: emailContent || "Raw Header Input",
         verdict: data.verdict,
         riskScore: data.risk_score,
         confidence: data.confidence,
@@ -96,7 +68,7 @@ app.post('/api/investigate', async (req, res) => {
       await newRecord.save();
       recordId = newRecord._id;
     } catch (dbErr) {
-      console.log('--> DB Save skipped for demo continuity:', dbErr.message);
+      console.log('--> DB Save skipped:', dbErr.message);
     }
 
     return res.json({
@@ -106,7 +78,10 @@ app.post('/api/investigate', async (req, res) => {
     });
   } catch (error) {
     console.error('Critical Endpoint Error:', error.message);
-    res.status(500).json({ status: 'error', message: 'Presentation fallback active' });
+    res.status(500).json({ 
+      status: 'error', 
+      message: error.response?.data?.detail || error.message || 'Failed to connect to Python analyzer service' 
+    });
   }
 });
 
