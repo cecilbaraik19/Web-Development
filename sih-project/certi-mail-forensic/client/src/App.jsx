@@ -79,7 +79,7 @@ export default function App() {
               disabled={loading}
               className="w-full bg-cyan-600 hover:bg-cyan-500 py-2.5 rounded-lg font-medium text-sm transition flex items-center justify-center gap-2"
             >
-              {loading ? 'Analyzing Infrastructure...' : <><Search size={16} /> Run Forensic AI Analysis</>}
+              {loading ? 'Analyzing Infrastructure...' : <><Search size={16} /> Run Forensic Analysis</>}
             </button>
           </div>
 
@@ -199,7 +199,7 @@ export default function App() {
               </div>
 
               <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-                <h4 className="text-xs text-slate-400 mb-2">Detected AI / Language Risk Indicators</h4>
+                <h4 className="text-xs text-slate-400 mb-2">Detect Language Risk Indicators</h4>
                 <ul className="list-disc list-inside text-xs text-slate-300 space-y-1">
                   {report.nlp_indicators.map((indicator, idx) => (
                     <li key={idx}>{indicator}</li>
