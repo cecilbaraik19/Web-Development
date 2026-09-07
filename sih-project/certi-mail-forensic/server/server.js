@@ -49,9 +49,10 @@ app.post('/api/investigate', async (req, res) => {
 
     const pythonBaseUrl = process.env.PYTHON_AI_URL || 'https://certimail-forensic-ai-service.onrender.com';
 
+    // Timeout badha kar 40 seconds kar diya hai taaki Render ka free tier server jaagne ka waqt pa sake
     const aiResponse = await axios.post(`${pythonBaseUrl}/analyze`, {
       raw_text: emailContent,
-    });
+    }, { timeout: 40000 });
 
     const data = aiResponse.data;
     console.log('--> AI Analysis received. Verdict:', data.verdict);
@@ -76,8 +77,12 @@ app.post('/api/investigate', async (req, res) => {
       caseId: newRecord._id,
     });
   } catch (error) {
-    console.error('--> ERROR in investigation endpoint:', error.response?.data || error.message);
-    res.status(500).json({ status: 'error', message: 'Failed to process AI investigation' });
+    console.error('--> DETAILED ERROR in investigation endpoint:');
+    console.error('Error Message:', error.message);
+    if (error.response) {
+      console.error('Python Server Response:', error.response.data);
+    }
+    res.status(500).json({ status: 'error', message: error.response?.data?.detail || error.message || 'Failed to process AI investigation' });
   }
 });
 
