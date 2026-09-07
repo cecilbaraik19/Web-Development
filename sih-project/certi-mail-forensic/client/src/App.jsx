@@ -1,1421 +1,241 @@
-import React, {
-    useEffect,
-    useState
-} from "react";
-
-import axios from "axios";
-
-import {
-    AlertTriangle,
-    CheckCircle,
-    XCircle,
-    Globe,
-    Shield,
-    Server,
-    Mail,
-    Link as LinkIcon,
-    Paperclip,
-    Database,
-    Search,
-    RefreshCw
-} from "lucide-react";
-
-import ThreatGraph from "./components/ThreatGraph";
-
-import {
-    MapContainer,
-    TileLayer,
-    Marker,
-    Popup
-} from "react-leaflet";
-
-import L from "leaflet";
-
-import "leaflet/dist/leaflet.css";
-
-
-// ============================================================
-// LEAFLET ICON FIX
-// ============================================================
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { ShieldAlert, Server, MapPin, CheckCircle, XCircle, Search, History, Globe, Layers, AlertTriangle } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import ThreatGraph from './components/ThreatGraph';
+import ExportReport from './components/ExportReport';
 
 delete L.Icon.Default.prototype._getIconUrl;
-
 L.Icon.Default.mergeOptions({
-    iconRetinaUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-
-    iconUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-
-    shadowUrl:
-        "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png"
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-
-// ============================================================
-// BACKEND
-// ============================================================
-
-const BACKEND_URL =
-    import.meta.env.VITE_API_URL ||
-    "http://localhost:5000";
-
-
-// ============================================================
-// HELPERS
-// ============================================================
-
-function formatValue(value) {
-
-    if (
-        value === null ||
-        value === undefined ||
-        value === ""
-    ) {
-        return "NOT AVAILABLE";
-    }
-
-    return String(value);
-}
-
-
-function getVerdictIcon(verdict) {
-
-    if (verdict === "MALICIOUS") {
-        return <XCircle size={22} />;
-    }
-
-    if (verdict === "SUSPICIOUS") {
-        return <AlertTriangle size={22} />;
-    }
-
-    return <CheckCircle size={22} />;
-}
-
-
-function getRiskClass(score) {
-
-    if (score >= 70) {
-        return "text-red-500";
-    }
-
-    if (score >= 35) {
-        return "text-yellow-500";
-    }
-
-    return "text-green-500";
-}
-
-
-function getAuthClass(value) {
-
-    if (
-        value === "PASS" ||
-        value === "VERIFIED" ||
-        value === "ALIGNED"
-    ) {
-        return "text-green-500";
-    }
-
-    if (value === "FAIL") {
-        return "text-red-500";
-    }
-
-    return "text-gray-400";
-}
-
-
-// ============================================================
-// COMPONENT
-// ============================================================
-
 export default function App() {
+  const [emailText, setEmailText] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [report, setReport] = useState(null);
+  const [caseId, setCaseId] = useState(null);
+  const [history, setHistory] = useState([]);
 
-    const [
-        emailText,
-        setEmailText
-    ] = useState("");
-
-    const [
-        report,
-        setReport
-    ] = useState(null);
-
-    const [
-        caseId,
-        setCaseId
-    ] = useState(null);
-
-    const [
-        history,
-        setHistory
-    ] = useState([]);
-
-    const [
-        loading,
-        setLoading
-    ] = useState(false);
-
-    const [
-        error,
-        setError
-    ] = useState("");
-
-
-    // ========================================================
-    // HISTORY
-    // ========================================================
-
-    async function fetchHistory() {
-
-        try {
-
-            const response =
-                await axios.get(
-                    `${BACKEND_URL}/api/history`,
-                    {
-                        timeout: 30000
-                    }
-                );
-
-            setHistory(
-                response.data.investigations ||
-                []
-            );
-
-        } catch (err) {
-
-            console.error(
-                "History error:",
-                err
-            );
-        }
+  const fetchHistory = async () => {
+    try {
+      const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://certimail-forensic.onrender.com';
+      const res = await axios.get(`${BACKEND_URL}/api/history`);
+      setHistory(res.data);
+    } catch (err) {
+      console.error('Failed to load history');
     }
+  };
 
+  useEffect(() => {
+    fetchHistory();
+  }, []);
 
-    useEffect(() => {
-
-        fetchHistory();
-
-    }, []);
-
-
-    // ========================================================
-    // ANALYZE
-    // ========================================================
-
-    async function handleAnalyze() {
-
-        if (!emailText.trim()) {
-
-            setError(
-                "Please paste an email before analysis."
-            );
-
-            return;
-        }
-
-
-        setLoading(true);
-        setError("");
-        setReport(null);
-        setCaseId(null);
-
-
-        try {
-
-            const response =
-                await axios.post(
-
-                    `${BACKEND_URL}/api/investigate`,
-
-                    {
-                        emailContent:
-                            emailText
-                    },
-
-                    {
-                        timeout: 70000,
-
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        }
-                    }
-                );
-
-
-            if (
-                response.data.status !==
-                "success"
-            ) {
-
-                throw new Error(
-                    response.data.message ||
-                    "Analysis failed."
-                );
-            }
-
-
-            setReport(
-                response.data.report
-            );
-
-            setCaseId(
-                response.data.caseId
-            );
-
-
-            await fetchHistory();
-
-        } catch (err) {
-
-            console.error(
-                "Analysis error:",
-                err
-            );
-
-            setError(
-                err.response?.data?.message ||
-                err.message ||
-                "Unable to analyze email."
-            );
-
-        } finally {
-
-            setLoading(false);
-        }
+  const handleAnalyze = async () => {
+    if (!emailText) return;
+    setLoading(true);
+    try {
+      const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://certimail-forensic.onrender.com';
+      const response = await axios.post(`${BACKEND_URL}/api/investigate`, {
+        emailContent: emailText
+      });
+      setReport(response.data.report);
+      setCaseId(response.data.caseId);
+      fetchHistory();
+    } catch (err) {
+      alert('Error connecting to backend server');
+    } finally {
+      setLoading(false);
     }
+  };
 
+  return (
+    <div className="min-h-screen p-6 font-sans bg-slate-950 text-slate-100">
+      <header className="flex justify-between items-center pb-6 border-b border-slate-800">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2 text-cyan-400">
+            <ShieldAlert /> CertiMail Forensics
+          </h1>
+          <p className="text-xs text-slate-400 mt-1">Unified Email Threat & Infrastructure Analyzer</p>
+        </div>
+      </header>
 
-    // ========================================================
-    // RESET
-    // ========================================================
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+        <div className="lg:col-span-5 flex flex-col gap-6">
+          <div className="bg-slate-900 p-5 rounded-xl border border-slate-800 flex flex-col gap-4">
+            <h2 className="text-sm font-semibold text-slate-300">Raw Email / Header Input</h2>
+            <textarea
+              className="w-full h-64 bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 font-mono"
+              placeholder="Paste raw email header or text body here..."
+              value={emailText}
+              onChange={(e) => setEmailText(e.target.value)}
+            />
+            <button
+              onClick={handleAnalyze}
+              disabled={loading}
+              className="w-full bg-cyan-600 hover:bg-cyan-500 py-2.5 rounded-lg font-medium text-sm transition flex items-center justify-center gap-2"
+            >
+              {loading ? 'Analyzing Infrastructure...' : <><Search size={16} /> Run Forensic AI Analysis</>}
+            </button>
+          </div>
 
-    function resetAnalysis() {
-
-        setReport(null);
-        setCaseId(null);
-        setError("");
-    }
-
-
-    // ========================================================
-    // EMPTY STATE
-    // ========================================================
-
-    if (!report) {
-
-        return (
-            <div className="min-h-screen bg-slate-950 text-white">
-
-                <div className="max-w-6xl mx-auto px-6 py-10">
-
-                    <div className="mb-10">
-
-                        <div className="flex items-center gap-3 mb-3">
-
-                            <Shield
-                                className="text-cyan-400"
-                                size={32}
-                            />
-
-                            <h1 className="text-3xl font-bold">
-                                CertiMail Forensics
-                            </h1>
-
-                        </div>
-
-                        <p className="text-slate-400">
-                            Evidence-based email threat
-                            detection and forensic intelligence.
-                        </p>
-
-                    </div>
-
-
-                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-
-                        <div className="flex items-center gap-3 mb-4">
-
-                            <Mail
-                                size={20}
-                                className="text-cyan-400"
-                            />
-
-                            <h2 className="text-xl font-semibold">
-                                Email Evidence
-                            </h2>
-
-                        </div>
-
-
-                        <textarea
-                            value={emailText}
-                            onChange={(event) =>
-                                setEmailText(
-                                    event.target.value
-                                )
-                            }
-                            placeholder="Paste the complete raw email including headers here..."
-                            className="w-full h-96 bg-slate-950 border border-slate-700 rounded-xl p-4 text-sm font-mono outline-none focus:border-cyan-500"
-                        />
-
-
-                        {error && (
-
-                            <div className="mt-4 bg-red-950/40 border border-red-800 rounded-lg p-4 text-red-300">
-
-                                {error}
-
-                            </div>
-                        )}
-
-
-                        <button
-                            onClick={handleAnalyze}
-                            disabled={loading}
-                            className="mt-5 px-6 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 flex items-center gap-2 font-semibold"
-                        >
-
-                            {loading ? (
-                                <>
-                                    <RefreshCw
-                                        size={18}
-                                        className="animate-spin"
-                                    />
-
-                                    Analyzing live evidence...
-                                </>
-                            ) : (
-                                <>
-                                    <Search size={18} />
-
-                                    Analyze Email
-                                </>
-                            )}
-
-                        </button>
-
-                    </div>
-
-
-                    {history.length > 0 && (
-
-                        <div className="mt-8">
-
-                            <h2 className="text-xl font-semibold mb-4">
-                                Recent Investigations
-                            </h2>
-
-
-                            <div className="space-y-3">
-
-                                {history.map(
-                                    (item) => (
-
-                                        <div
-                                            key={item.caseId}
-                                            className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex justify-between"
-                                        >
-
-                                            <div>
-
-                                                <div className="font-mono text-sm">
-                                                    {item.caseId}
-                                                </div>
-
-                                                <div className="text-slate-400 text-sm mt-1">
-                                                    {item.verdict}
-                                                </div>
-
-                                            </div>
-
-
-                                            <div
-                                                className={
-                                                    getRiskClass(
-                                                        item.riskScore
-                                                    )
-                                                }
-                                            >
-                                                {item.riskScore}/100
-                                            </div>
-
-                                        </div>
-
-                                    )
-                                )}
-
-                            </div>
-
-                        </div>
-
-                    )}
-
+          <div className="bg-slate-900 p-5 rounded-xl border border-slate-800">
+            <h3 className="text-xs font-semibold text-slate-400 flex items-center gap-2 mb-3">
+              <History size={14} /> Recent Investigations
+            </h3>
+            <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
+              {history.map((item) => (
+                <div key={item._id} className="p-2.5 bg-slate-950 rounded-lg border border-slate-800/80 flex justify-between items-center text-xs">
+                  <div>
+                    <span className="font-mono text-cyan-400">{item.extractedIp || 'N/A'}</span>
+                    <span className="text-slate-500 block text-[10px]">{new Date(item.createdAt).toLocaleTimeString()}</span>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${
+                    item.verdict === 'MALICIOUS' ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                  }`}>
+                    {item.verdict}
+                  </span>
                 </div>
-
+              ))}
             </div>
-        );
-    }
-
-
-    // ========================================================
-    // REPORT DATA
-    // ========================================================
-
-    const authentication =
-        report.authentication || {};
-
-    const identity =
-        report.identity_analysis || {};
-
-    const receivedChain =
-        report.received_chain || [];
-
-    const ips =
-        report.ip_intelligence || [];
-
-    const urls =
-        report.urls || [];
-
-    const attachments =
-        report.attachments || [];
-
-    const evidence =
-        report.evidence || [];
-
-    const graph =
-        report.graph || {
-            nodes: [],
-            relationships: []
-        };
-
-    const campaign =
-        report.campaign || {};
-
-    const geo =
-        report.estimated_geo;
-
-
-    // ========================================================
-    // RESULT
-    // ========================================================
-
-    return (
-
-        <div className="min-h-screen bg-slate-950 text-white">
-
-            <div className="max-w-7xl mx-auto px-6 py-8">
-
-
-                {/* HEADER */}
-
-                <div className="flex justify-between items-center mb-8">
-
-                    <div>
-
-                        <div className="flex items-center gap-3">
-
-                            <Shield
-                                className="text-cyan-400"
-                                size={30}
-                            />
-
-                            <h1 className="text-3xl font-bold">
-                                Forensic Investigation
-                            </h1>
-
-                        </div>
-
-
-                        {caseId && (
-
-                            <div className="text-slate-400 text-sm font-mono mt-2">
-                                Case ID: {caseId}
-                            </div>
-
-                        )}
-
-                    </div>
-
-
-                    <button
-                        onClick={resetAnalysis}
-                        className="px-4 py-2 border border-slate-700 rounded-lg hover:bg-slate-900"
-                    >
-                        New Investigation
-                    </button>
-
-                </div>
-
-
-                {/* VERDICT */}
-
-                <div className="grid md:grid-cols-3 gap-5 mb-6">
-
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-
-                        <div className="text-slate-400 text-sm">
-                            Verdict
-                        </div>
-
-                        <div className="flex items-center gap-3 mt-3">
-
-                            {getVerdictIcon(
-                                report.verdict
-                            )}
-
-                            <span className="text-2xl font-bold">
-                                {formatValue(
-                                    report.verdict
-                                )}
-                            </span>
-
-                        </div>
-
-                    </div>
-
-
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-
-                        <div className="text-slate-400 text-sm">
-                            Risk Score
-                        </div>
-
-                        <div
-                            className={`text-3xl font-bold mt-3 ${getRiskClass(
-                                report.risk_score
-                            )}`}
-                        >
-                            {formatValue(
-                                report.risk_score
-                            )}
-                            /100
-                        </div>
-
-                    </div>
-
-
-                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-
-                        <div className="text-slate-400 text-sm">
-                            Evidence Confidence
-                        </div>
-
-                        <div className="text-3xl font-bold mt-3">
-                            {formatValue(
-                                report.confidence
-                            )}%
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                {/* AUTHENTICATION */}
-
-                <section className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-6">
-
-                    <div className="flex items-center gap-3 mb-5">
-
-                        <Shield
-                            size={20}
-                            className="text-cyan-400"
-                        />
-
-                        <h2 className="text-xl font-semibold">
-                            Email Authentication
-                        </h2>
-
-                    </div>
-
-
-                    <div className="grid md:grid-cols-3 gap-4">
-
-                        {[
-                            ["SPF", authentication.spf],
-                            ["DKIM", authentication.dkim],
-                            ["DMARC", authentication.dmarc]
-                        ].map(
-                            ([name, value]) => (
-
-                                <div
-                                    key={name}
-                                    className="bg-slate-950 rounded-lg p-4"
-                                >
-
-                                    <div className="text-slate-400 text-sm">
-                                        {name}
-                                    </div>
-
-                                    <div
-                                        className={`text-xl font-bold mt-2 ${getAuthClass(
-                                            value
-                                        )}`}
-                                    >
-                                        {formatValue(
-                                            value
-                                        )}
-                                    </div>
-
-                                </div>
-
-                            )
-                        )}
-
-                    </div>
-
-                </section>
-
-
-                {/* IDENTITY */}
-
-                <section className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-6">
-
-                    <div className="flex items-center gap-3 mb-5">
-
-                        <Mail
-                            size={20}
-                            className="text-cyan-400"
-                        />
-
-                        <h2 className="text-xl font-semibold">
-                            Sender Identity
-                        </h2>
-
-                    </div>
-
-
-                    <div className="grid md:grid-cols-2 gap-4">
-
-                        <div>
-                            <div className="text-slate-500 text-sm">
-                                From
-                            </div>
-
-                            <div className="font-mono mt-1 break-all">
-                                {formatValue(
-                                    identity.from
-                                )}
-                            </div>
-                        </div>
-
-
-                        <div>
-                            <div className="text-slate-500 text-sm">
-                                Return-Path
-                            </div>
-
-                            <div className="font-mono mt-1 break-all">
-                                {formatValue(
-                                    identity.return_path
-                                )}
-                            </div>
-                        </div>
-
-
-                        <div>
-                            <div className="text-slate-500 text-sm">
-                                Reply-To
-                            </div>
-
-                            <div className="font-mono mt-1 break-all">
-                                {formatValue(
-                                    identity.reply_to
-                                )}
-                            </div>
-                        </div>
-
-
-                        <div>
-                            <div className="text-slate-500 text-sm">
-                                Sender Domain
-                            </div>
-
-                            <div className="font-mono mt-1">
-                                {formatValue(
-                                    report.sender_domain
-                                )}
-                            </div>
-                        </div>
-
-                    </div>
-
-
-                    {identity.indicators?.length > 0 && (
-
-                        <div className="mt-5 space-y-2">
-
-                            {identity.indicators.map(
-                                (indicator, index) => (
-
-                                    <div
-                                        key={index}
-                                        className="text-yellow-400 text-sm"
-                                    >
-                                        ⚠ {indicator}
-                                    </div>
-
-                                )
-                            )}
-
-                        </div>
-
-                    )}
-
-                </section>
-
-
-                {/* RECEIVED CHAIN */}
-
-                <section className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-6">
-
-                    <div className="flex items-center gap-3 mb-5">
-
-                        <Server
-                            size={20}
-                            className="text-cyan-400"
-                        />
-
-                        <h2 className="text-xl font-semibold">
-                            Received Relay Chain
-                        </h2>
-
-                    </div>
-
-
-                    {receivedChain.length === 0 ? (
-
-                        <div className="text-slate-500">
-                            No Received headers were found.
-                        </div>
-
-                    ) : (
-
-                        <div className="space-y-4">
-
-                            {receivedChain.map(
-                                (hop) => (
-
-                                    <div
-                                        key={hop.order}
-                                        className="bg-slate-950 rounded-lg p-4"
-                                    >
-
-                                        <div className="font-semibold mb-2">
-                                            Hop {hop.order}
-                                        </div>
-
-
-                                        <div className="text-sm text-slate-400 break-all">
-                                            {hop.raw}
-                                        </div>
-
-
-                                        {hop.public_ips?.length > 0 && (
-
-                                            <div className="mt-3 flex flex-wrap gap-2">
-
-                                                {hop.public_ips.map(
-                                                    ip => (
-
-                                                        <span
-                                                            key={ip}
-                                                            className="font-mono text-cyan-400 bg-cyan-950/40 px-2 py-1 rounded"
-                                                        >
-                                                            {ip}
-                                                        </span>
-
-                                                    )
-                                                )}
-
-                                            </div>
-
-                                        )}
-
-                                    </div>
-
-                                )
-                            )}
-
-                        </div>
-
-                    )}
-
-                </section>
-
-
-                {/* IP INTELLIGENCE */}
-
-                <section className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-6">
-
-                    <div className="flex items-center gap-3 mb-5">
-
-                        <Globe
-                            size={20}
-                            className="text-cyan-400"
-                        />
-
-                        <h2 className="text-xl font-semibold">
-                            IP Intelligence
-                        </h2>
-
-                    </div>
-
-
-                    {ips.length === 0 ? (
-
-                        <div className="text-slate-500">
-                            No public IP addresses were observed.
-                        </div>
-
-                    ) : (
-
-                        <div className="space-y-4">
-
-                            {ips.map(
-                                (ip) => (
-
-                                    <div
-                                        key={ip.ip}
-                                        className="bg-slate-950 rounded-lg p-5"
-                                    >
-
-                                        <div className="font-mono text-cyan-400 text-lg">
-                                            {ip.ip}
-                                        </div>
-
-
-                                        {ip.status === "AVAILABLE" ? (
-
-                                            <div className="grid md:grid-cols-3 gap-4 mt-4 text-sm">
-
-                                                <div>
-                                                    Country:
-                                                    <strong className="ml-2">
-                                                        {formatValue(
-                                                            ip.country
-                                                        )}
-                                                    </strong>
-                                                </div>
-
-                                                <div>
-                                                    City:
-                                                    <strong className="ml-2">
-                                                        {formatValue(
-                                                            ip.city
-                                                        )}
-                                                    </strong>
-                                                </div>
-
-                                                <div>
-                                                    ISP:
-                                                    <strong className="ml-2">
-                                                        {formatValue(
-                                                            ip.isp
-                                                        )}
-                                                    </strong>
-                                                </div>
-
-                                                <div>
-                                                    ASN:
-                                                    <strong className="ml-2">
-                                                        {formatValue(
-                                                            ip.asn
-                                                        )}
-                                                    </strong>
-                                                </div>
-
-                                                <div>
-                                                    Organization:
-                                                    <strong className="ml-2">
-                                                        {formatValue(
-                                                            ip.organization
-                                                        )}
-                                                    </strong>
-                                                </div>
-
-                                                <div>
-                                                    Hosting:
-                                                    <strong className="ml-2">
-                                                        {formatValue(
-                                                            ip.is_hosting
-                                                        )}
-                                                    </strong>
-                                                </div>
-
-                                            </div>
-
-                                        ) : (
-
-                                            <div className="text-slate-500 mt-3">
-                                                Live IP intelligence unavailable.
-                                            </div>
-
-                                        )}
-
-                                    </div>
-
-                                )
-                            )}
-
-                        </div>
-
-                    )}
-
-                </section>
-
-
-                {/* MAP */}
-
-                {geo && geo.latitude && geo.longitude && (
-
-                    <section className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-6">
-
-                        <h2 className="text-xl font-semibold mb-4">
-                            Probable Earliest Observed Infrastructure
-                        </h2>
-
-                        <p className="text-slate-400 text-sm mb-4">
-                            This represents the earliest public IP observed
-                            in the supplied Received chain. It does not prove
-                            the physical location or identity of the sender.
-                        </p>
-
-
-                        <div className="h-[400px] rounded-xl overflow-hidden">
-
-                            <MapContainer
-                                center={[
-                                    geo.latitude,
-                                    geo.longitude
-                                ]}
-                                zoom={5}
-                                style={{
-                                    height: "100%",
-                                    width: "100%"
-                                }}
-                            >
-
-                                <TileLayer
-                                    attribution="© OpenStreetMap contributors"
-                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                />
-
-
-                                <Marker
-                                    position={[
-                                        geo.latitude,
-                                        geo.longitude
-                                    ]}
-                                >
-
-                                    <Popup>
-
-                                        <strong>
-                                            {formatValue(
-                                                geo.city
-                                            )}
-                                        </strong>
-
-                                        <br />
-
-                                        {formatValue(
-                                            geo.country
-                                        )}
-
-                                        <br />
-
-                                        IP:
-                                        {" "}
-                                        {formatValue(
-                                            geo.ip
-                                        )}
-
-                                    </Popup>
-
-                                </Marker>
-
-                            </MapContainer>
-
-                        </div>
-
-                    </section>
-
-                )}
-
-
-                {/* URLS */}
-
-                <section className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-6">
-
-                    <div className="flex items-center gap-3 mb-5">
-
-                        <LinkIcon
-                            size={20}
-                            className="text-cyan-400"
-                        />
-
-                        <h2 className="text-xl font-semibold">
-                            Extracted URLs
-                        </h2>
-
-                    </div>
-
-
-                    {urls.length === 0 ? (
-
-                        <div className="text-slate-500">
-                            No URLs were found.
-                        </div>
-
-                    ) : (
-
-                        <div className="space-y-3">
-
-                            {urls.map(
-                                (url, index) => (
-
-                                    <div
-                                        key={index}
-                                        className="bg-slate-950 rounded-lg p-4"
-                                    >
-
-                                        <div className="font-mono text-sm break-all text-cyan-400">
-                                            {url.url}
-                                        </div>
-
-
-                                        <div className="text-sm text-slate-400 mt-2">
-                                            Host:
-                                            {" "}
-                                            {url.hostname}
-                                        </div>
-
-
-                                        {url.indicators?.length > 0 && (
-
-                                            <div className="mt-2 text-yellow-400 text-sm">
-
-                                                {url.indicators.join(
-                                                    " • "
-                                                )}
-
-                                            </div>
-
-                                        )}
-
-                                    </div>
-
-                                )
-                            )}
-
-                        </div>
-
-                    )}
-
-                </section>
-
-
-                {/* ATTACHMENTS */}
-
-                <section className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-6">
-
-                    <div className="flex items-center gap-3 mb-5">
-
-                        <Paperclip
-                            size={20}
-                            className="text-cyan-400"
-                        />
-
-                        <h2 className="text-xl font-semibold">
-                            Attachments
-                        </h2>
-
-                    </div>
-
-
-                    {attachments.length === 0 ? (
-
-                        <div className="text-slate-500">
-                            No attachments were found.
-                        </div>
-
-                    ) : (
-
-                        <div className="space-y-3">
-
-                            {attachments.map(
-                                (attachment, index) => (
-
-                                    <div
-                                        key={index}
-                                        className="bg-slate-950 rounded-lg p-4"
-                                    >
-
-                                        <div className="font-mono">
-                                            {formatValue(
-                                                attachment.filename
-                                            )}
-                                        </div>
-
-                                        <div className="text-sm text-slate-400 mt-1">
-                                            {formatValue(
-                                                attachment.content_type
-                                            )}
-                                        </div>
-
-
-                                        {attachment.suspicious && (
-
-                                            <div className="text-red-400 text-sm mt-2">
-                                                Potentially executable
-                                                attachment type detected.
-                                            </div>
-
-                                        )}
-
-                                    </div>
-
-                                )
-                            )}
-
-                        </div>
-
-                    )}
-
-                </section>
-
-
-                {/* DNS / WHOIS */}
-
-                <section className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-6">
-
-                    <div className="flex items-center gap-3 mb-5">
-
-                        <Database
-                            size={20}
-                            className="text-cyan-400"
-                        />
-
-                        <h2 className="text-xl font-semibold">
-                            DNS & WHOIS Intelligence
-                        </h2>
-
-                    </div>
-
-
-                    <pre className="bg-slate-950 rounded-xl p-5 overflow-auto text-sm text-slate-300">
-                        {JSON.stringify(
-                            report.whois_data,
-                            null,
-                            2
-                        )}
-                    </pre>
-
-                </section>
-
-
-                {/* EVIDENCE */}
-
-                <section className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-6">
-
-                    <div className="flex items-center gap-3 mb-5">
-
-                        <AlertTriangle
-                            size={20}
-                            className="text-cyan-400"
-                        />
-
-                        <h2 className="text-xl font-semibold">
-                            Evidence
-                        </h2>
-
-                    </div>
-
-
-                    {evidence.length === 0 ? (
-
-                        <div className="text-green-400">
-                            No risk indicators were identified by
-                            the current evidence engine.
-                        </div>
-
-                    ) : (
-
-                        <div className="space-y-3">
-
-                            {evidence.map(
-                                (item, index) => (
-
-                                    <div
-                                        key={index}
-                                        className="bg-slate-950 rounded-lg p-4"
-                                    >
-
-                                        <div className="font-semibold">
-                                            {item.message}
-                                        </div>
-
-
-                                        <div className="text-sm text-slate-500 mt-1">
-                                            Type:
-                                            {" "}
-                                            {item.type}
-                                            {" • "}
-                                            Severity:
-                                            {" "}
-                                            {item.severity}
-                                        </div>
-
-                                    </div>
-
-                                )
-                            )}
-
-                        </div>
-
-                    )}
-
-                </section>
-
-
-                {/* CAMPAIGN */}
-
-                <section className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-6">
-
-                    <h2 className="text-xl font-semibold mb-4">
-                        Campaign Correlation
-                    </h2>
-
-
-                    {campaign.status ===
-                    "FINGERPRINT_GENERATED" ? (
-
-                        <>
-
-                            <div className="text-green-400 font-semibold">
-                                Evidence fingerprint generated
-                            </div>
-
-                            <div className="font-mono text-xs text-slate-400 mt-3 break-all">
-                                {campaign.fingerprint}
-                            </div>
-
-                            <div className="text-slate-500 text-sm mt-3">
-                                This is a deterministic fingerprint of
-                                observed indicators. It is not a claim that
-                                this email belongs to a known threat campaign.
-                            </div>
-
-                        </>
-
-                    ) : (
-
-                        <div className="text-slate-500">
-                            Insufficient evidence for campaign
-                            clustering. Status: UNCLUSTERED.
-                        </div>
-
-                    )}
-
-                </section>
-
-
-                {/* GRAPH */}
-
-                <section className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-6">
-
-                    <h2 className="text-xl font-semibold mb-4">
-                        Threat Relationship Graph
-                    </h2>
-
-
-                    {graph.nodes?.length > 0 ? (
-
-                        <ThreatGraph
-                            graphData={{
-                                nodes:
-                                    graph.nodes,
-
-                                links:
-                                    graph.relationships?.map(
-                                        relationship => ({
-                                            source:
-                                                relationship.source,
-
-                                            target:
-                                                relationship.target,
-
-                                            relation:
-                                                relationship.relation
-                                        })
-                                    ) || []
-                            }}
-                        />
-
-                    ) : (
-
-                        <div className="text-slate-500">
-                            No graph relationships were identified.
-                        </div>
-
-                    )}
-
-                </section>
-
-
-                {/* FORENSIC SUMMARY */}
-
-                <section className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-
-                    <h2 className="text-xl font-semibold mb-4">
-                        Forensic Interpretation
-                    </h2>
-
-
-                    <div className="space-y-3 text-sm text-slate-400">
-
-                        <p>
-                            Probable earliest observed public IP:
-                            {" "}
-                            <span className="font-mono text-cyan-400">
-                                {formatValue(
-                                    report.forensic_summary
-                                        ?.probable_origin_ip
-                                )}
-                            </span>
-                        </p>
-
-
-                        <p>
-                            {formatValue(
-                                report.forensic_summary
-                                    ?.origin_interpretation
-                            )}
-                        </p>
-
-
-                        <p>
-                            External intelligence:
-                            {" "}
-                            {(
-                                report.forensic_summary
-                                    ?.external_intelligence_sources ||
-                                []
-                            ).join(", ") ||
-                                "NONE"}
-                        </p>
-
-                    </div>
-
-                </section>
-
-            </div>
-
+          </div>
         </div>
 
-    );
+        <div className="lg:col-span-7 flex flex-col gap-6">
+          {report ? (
+            <>
+              <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-cyan-950/60 border border-cyan-800 rounded-lg text-cyan-400">
+                    <Layers size={18} />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase text-slate-400 tracking-wider">Active Attack Campaign Cluster</span>
+                    <h4 className="text-sm font-mono font-bold text-slate-200">{report.campaign_tag || 'CAMPAIGN-FIN-2026-ALPHA'}</h4>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-xs">
+                  <AlertTriangle size={14} className="text-amber-400" />
+                  <span className="text-slate-300 font-medium">Multi-Vector Cluster Linked</span>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <ExportReport reportData={report} caseId={caseId} />
+              </div>
+
+              <div className={`p-5 rounded-xl border flex justify-between items-center ${
+                report.verdict === 'MALICIOUS' 
+                  ? 'bg-red-950/40 border-red-800 text-red-300' 
+                  : 'bg-emerald-950/40 border-emerald-800 text-emerald-300'
+              }`}>
+                <div>
+                  <span className="text-xs uppercase font-semibold">Overall Verdict</span>
+                  <h3 className="text-2xl font-black">{report.verdict}</h3>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs">Risk Score</span>
+                  <div className="text-3xl font-extrabold">{report.risk_score}/100</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                {Object.entries(report.authentication).map(([key, value]) => (
+                  <div key={key} className="bg-slate-900 border border-slate-800 p-4 rounded-xl text-center">
+                    <span className="text-xs uppercase text-slate-400">{key}</span>
+                    <div className="flex items-center justify-center gap-1 mt-1 font-bold text-sm">
+                      {value === 'PASS' || value === 'VERIFIED' || value === 'ALIGNED' ? (
+                        <CheckCircle size={16} className="text-emerald-400" />
+                      ) : (
+                        <XCircle size={16} className="text-red-400" />
+                      )}
+                      {value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl flex flex-col justify-between">
+                <div>
+                  <h4 className="text-xs text-slate-400 flex items-center gap-1 mb-2"><Server size={14}/> Extracted IP & Domains</h4>
+                  <p className="font-mono text-cyan-400 text-sm">{report.extracted_ip}</p>
+                  <div className="mt-2 text-xs text-slate-400">
+                    Domains: {report.extracted_domains ? report.extracted_domains.join(', ') : 'None'}
+                  </div>
+                </div>
+                <div className="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center">
+                  <div>
+                    <h4 className="text-xs text-slate-400 flex items-center gap-1 mb-1"><MapPin size={14}/> Observed Location</h4>
+                    <p className="text-sm font-medium">{report.estimated_geo.city}, {report.estimated_geo.country}</p>
+                  </div>
+                  <span className="text-xs text-slate-500 font-mono">{report.estimated_geo.isp}</span>
+                </div>
+              </div>
+
+              <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
+                <h4 className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">WHOIS & Registrar Intelligence</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                    <span className="text-slate-500 block text-[10px]">Registrar</span>
+                    <span className="font-medium text-slate-300 truncate block">{report.whois_data?.registrar || 'N/A'}</span>
+                  </div>
+                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                    <span className="text-slate-500 block text-[10px]">Creation Date</span>
+                    <span className="font-medium text-slate-300">{report.whois_data?.creation_date || 'N/A'}</span>
+                  </div>
+                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                    <span className="text-slate-500 block text-[10px]">MX Records</span>
+                    <span className="font-medium text-cyan-400 truncate block">{report.whois_data?.mx_records || 'N/A'}</span>
+                  </div>
+                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                    <span className="text-slate-500 block text-[10px]">DNSSEC Status</span>
+                    <span className="font-medium text-emerald-400">{report.whois_data?.dnssec || 'Validated'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
+                <h4 className="text-xs text-slate-400 mb-2">Detected AI / Language Risk Indicators</h4>
+                <ul className="list-disc list-inside text-xs text-slate-300 space-y-1">
+                  {report.nlp_indicators.map((indicator, idx) => (
+                    <li key={idx}>{indicator}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <ThreatGraph graphData={report.graph_relationships} />
+
+              <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl overflow-hidden h-[500px] flex flex-col">
+                <h4 className="text-xs text-slate-400 flex items-center gap-1 mb-3"><Globe size={14}/> Interactive Transmission Map</h4>
+                <div className="flex-1 w-full rounded-lg overflow-hidden border border-slate-800">
+                  <MapContainer 
+                    center={[report.estimated_geo.lat || 20.5937, report.estimated_geo.lon || 78.9629]} 
+                    zoom={4} 
+                    scrollWheelZoom={false}
+                    style={{ height: "100%", width: "100%" }}
+                  >
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    <Marker position={[report.estimated_geo.lat || 20.5937, report.estimated_geo.lon || 78.9629]}>
+                      <Popup>
+                        Origin Node: {report.extracted_ip}<br />
+                        Location: {report.estimated_geo.city}, {report.estimated_geo.country}
+                      </Popup>
+                    </Marker>
+                  </MapContainer>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="h-full bg-slate-900/50 border border-slate-800 border-dashed rounded-xl flex items-center justify-center text-slate-500 text-sm p-12">
+              Paste email headers and click Run Analysis to populate results.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
