@@ -47,7 +47,7 @@ app.post('/api/investigate', async (req, res) => {
     console.log('--> Incoming request received at /api/investigate');
     const { emailContent } = req.body;
 
-    const pythonBaseUrl = process.env.PYTHON_AI_URL || 'http://127.0.0.1:8000';
+    const pythonBaseUrl = process.env.PYTHON_AI_URL || 'https://certimail-forensic-ai-service.onrender.com';
 
     const aiResponse = await axios.post(`${pythonBaseUrl}/analyze`, {
       raw_text: emailContent,
