@@ -184,6 +184,7 @@ class EmailForensicAnalyzer:
 analyzer = EmailForensicAnalyzer()
 
 @app.post("/analyze")
+@app.post("/analyze/")
 async def analyze_email(payload: EmailPayload):
     return analyzer.analyze(payload.raw_text)
 
