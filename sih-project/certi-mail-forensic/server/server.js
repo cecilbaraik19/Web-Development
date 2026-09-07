@@ -1,5 +1,4 @@
 import dns from 'dns';
-// Force Node.js to use Google's DNS servers directly, bypassing local network blocks
 dns.setServers(['8.8.8.8', '1.1.1.1']);
 
 import express from 'express';
@@ -28,18 +27,16 @@ app.get('/', (req, res) => {
   });
 });
 
-// Connect MongoDB 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/certimailforensic';
 
 mongoose.connect(MONGODB_URI, {
   dbName: 'certimailforensic',
-  family: 4,               // IPv4 force karega taaki DNS routing block na ho
-  serverSelectionTimeoutMS: 10000 // 10 seconds mein connect ya fail hoga, hang nahi rahega
+  family: 4,
+  serverSelectionTimeoutMS: 10000
 })
 .then(() => console.log(`Connected to MongoDB. Active Database: ${mongoose.connection.name}`))
 .catch((err) => console.error('MongoDB connection error:', err.message));
 
-// Routes
 app.use('/api/intel', threatIntelRoutes);
 
 app.post('/api/investigate', async (req, res) => {
@@ -47,9 +44,9 @@ app.post('/api/investigate', async (req, res) => {
     console.log('--> Incoming request received at /api/investigate');
     const { emailContent } = req.body;
 
-    const pythonBaseUrl = process.env.PYTHON_AI_URL || 'https://certimail-forensic-ai-service.onrender.com';
+    // Ensure this matches your actual Python AI service Render URL
+    const pythonBaseUrl = process.env.PYTHON_AI_URL || 'https://certimail-forensic.onrender.com';
 
-    // Timeout badha kar 40 seconds kar diya hai taaki Render ka free tier server jaagne ka waqt pa sake
     const aiResponse = await axios.post(`${pythonBaseUrl}/analyze`, {
       raw_text: emailContent,
     }, { timeout: 40000 });
@@ -77,11 +74,7 @@ app.post('/api/investigate', async (req, res) => {
       caseId: newRecord._id,
     });
   } catch (error) {
-    console.error('--> DETAILED ERROR in investigation endpoint:');
-    console.error('Error Message:', error.message);
-    if (error.response) {
-      console.error('Python Server Response:', error.response.data);
-    }
+    console.error('--> DETAILED ERROR in investigation endpoint:', error.response?.data || error.message);
     res.status(500).json({ status: 'error', message: error.response?.data?.detail || error.message || 'Failed to process AI investigation' });
   }
 });

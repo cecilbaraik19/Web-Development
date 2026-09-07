@@ -40,11 +40,9 @@ export default function App() {
     if (!emailText) return;
     setLoading(true);
     try {
-      
       const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://certimail-forensic.onrender.com';
-
       const response = await axios.post(`${BACKEND_URL}/api/investigate`, {
-            emailContent: emailText
+        emailContent: emailText
       });
       setReport(response.data.report);
       setCaseId(response.data.caseId);
@@ -111,7 +109,6 @@ export default function App() {
         <div className="lg:col-span-7 flex flex-col gap-6">
           {report ? (
             <>
-              {/* Campaign Grouping / Case Management Cluster Panel */}
               <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-cyan-950/60 border border-cyan-800 rounded-lg text-cyan-400">
@@ -163,7 +160,6 @@ export default function App() {
                 ))}
               </div>
 
-              {/* IP, Domain & Location Card (Full Width in Right Panel) */}
               <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl flex flex-col justify-between">
                 <div>
                   <h4 className="text-xs text-slate-400 flex items-center gap-1 mb-2"><Server size={14}/> Extracted IP & Domains</h4>
@@ -181,7 +177,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* WHOIS and Registrar Intelligence Panel */}
               <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
                 <h4 className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">WHOIS & Registrar Intelligence</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
@@ -215,7 +210,6 @@ export default function App() {
 
               <ThreatGraph graphData={report.graph_relationships} />
 
-              {/* Big Full-Width Interactive Transmission Map at the Bottom */}
               <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl overflow-hidden h-[500px] flex flex-col">
                 <h4 className="text-xs text-slate-400 flex items-center gap-1 mb-3"><Globe size={14}/> Interactive Transmission Map</h4>
                 <div className="flex-1 w-full rounded-lg overflow-hidden border border-slate-800">
