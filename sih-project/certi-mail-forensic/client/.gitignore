@@ -25,3 +25,5 @@ dist-ssr
 
 # Dependencies (NEVER commit these)
 node_modules/
+
+.env
