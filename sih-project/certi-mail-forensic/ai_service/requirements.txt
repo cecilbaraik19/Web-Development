@@ -3,4 +3,6 @@ uvicorn>=0.30.0
 pydantic>=2.8.0
 python-whois>=0.9.4
 requests>=2.31.0
-dnspython
+dnspython>=2.6.0
+scikit-learn>=1.5.0
+joblib>=1.4.0

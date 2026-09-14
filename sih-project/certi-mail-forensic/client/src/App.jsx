@@ -7,6 +7,18 @@ import L from 'leaflet';
 import ThreatGraph from './components/ThreatGraph';
 import ExportReport from './components/ExportReport';
 
+
+const res = await axios.get(`${BACKEND_URL}/api/history`, {
+  headers: { 'x-client-key': import.meta.env.VITE_CLIENT_KEY }
+});
+
+const response = await axios.post(`${BACKEND_URL}/api/investigate`, {
+  emailContent: emailText
+}, {
+  timeout: 60000,
+  headers: { 'x-client-key': import.meta.env.VITE_CLIENT_KEY }
+});
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
