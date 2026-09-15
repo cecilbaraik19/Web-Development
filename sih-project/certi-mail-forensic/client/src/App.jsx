@@ -157,7 +157,7 @@ export default function App() {
               CertiMail Forensics
               <span className="text-cyan-400 animate-blink">_</span>
             </h1>
-            <p className="text-xs text-slate-400 mt-1">Unified Email Threat & Infrastructure Analyzer</p>
+            <p className="text-xs text-slate-400 mt-1">Unified AI Email Threat & Infrastructure Analyzer</p>
           </div>
           <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400 bg-slate-900/70 border border-slate-800 rounded-lg px-3 py-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-glow shadow-glow-emerald"></span>
@@ -205,7 +205,7 @@ export default function App() {
                   {loading ? (
                     <span className="font-mono text-xs">{SCAN_SEQUENCE[scanLine]}</span>
                   ) : (
-                    <><Search size={16} /> Run Forensic Analysis</>
+                    <><Search size={16} /> Run AI Forensic Analysis</>
                   )}
                 </button>
                 <button

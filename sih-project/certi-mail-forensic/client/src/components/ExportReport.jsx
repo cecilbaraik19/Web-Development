@@ -38,7 +38,7 @@ export default function ExportReport({ reportData, caseId, clusterId, relatedCas
     doc.rect(0, 0, pageWidth, 30, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(16);
-    doc.text("CertiMail Forensic Investigation Report", 14, 18);
+    doc.text("CertiMail AI Forensic Investigation Report", 14, 18);
     doc.setFontSize(10);
     doc.setTextColor(148, 163, 184);
     doc.text(`Case ID: ${caseId || 'N/A'}   |   Generated: ${new Date().toLocaleString()}`, 14, 25);
