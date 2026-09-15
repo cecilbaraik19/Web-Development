@@ -15,7 +15,7 @@ router.post('/investigate', async (req, res) => {
 
     const pythonBaseUrl = process.env.PYTHON_AI_URL || 'https://certimail-forensic-ai-service.onrender.com';
     const aiResponse = await axios.post(`${pythonBaseUrl}/analyze`, {
-      raw_text: emailContent, // full content always sent to the analyzer — masking only applies to storage
+      raw_text: emailContent,
     }, {
       timeout: 60000,
       headers: { 'x-internal-secret': process.env.INTERNAL_API_SECRET || '' }
@@ -35,15 +35,16 @@ router.post('/investigate', async (req, res) => {
         confidence: data.confidence,
         authentication: data.authentication,
         extractedIp: data.extracted_ip,
+        extractedDomains: data.extracted_domains || [],
         estimatedGeo: data.estimated_geo,
         nlpIndicators: data.nlp_indicators,
         campaignTag: data.campaign_tag,
         mlLabel: data.ml_classification?.label,
+        fullReport: data,
       });
       await newRecord.save();
       recordId = newRecord._id;
 
-      // Immutable audit trail entry — separate collection, never edited
       await AuditLog.create({
         action: 'ANALYZE_EMAIL',
         investigationId: newRecord._id,
@@ -76,7 +77,81 @@ router.get('/history', async (req, res) => {
   }
 });
 
-// Audit log viewer — read-only, for compliance/legal review
+// Case search + pagination
+router.get('/cases', async (req, res) => {
+  try {
+    const { query, verdict, dateFrom, dateTo, page = 1, limit = 10 } = req.query;
+    const filter = {};
+
+    if (verdict && verdict !== 'ALL') {
+      filter.verdict = verdict;
+    }
+
+    if (query) {
+      filter.$or = [
+        { extractedIp: { $regex: query, $options: 'i' } },
+        { extractedDomains: { $regex: query, $options: 'i' } },
+        { campaignTag: { $regex: query, $options: 'i' } },
+      ];
+    }
+
+    if (dateFrom || dateTo) {
+      filter.createdAt = {};
+      if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
+      if (dateTo) filter.createdAt.$lte = new Date(dateTo);
+    }
+
+    const pageNum = Math.max(parseInt(page), 1);
+    const limitNum = Math.min(Math.max(parseInt(limit), 1), 50);
+    const skip = (pageNum - 1) * limitNum;
+
+    const [cases, total] = await Promise.all([
+      Investigation.find(filter)
+        .select('-rawEmail -fullReport') // lighter payload for list view
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum),
+      Investigation.countDocuments(filter)
+    ]);
+
+    res.json({
+      cases,
+      total,
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum)
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Failed to search cases' });
+  }
+});
+
+// Reopen a single past case with its full report
+router.get('/cases/:id', async (req, res) => {
+  try {
+    const record = await Investigation.findById(req.params.id);
+    if (!record) {
+      return res.status(404).json({ status: 'error', message: 'Case not found' });
+    }
+    res.json({
+      status: 'success',
+      report: record.fullReport || {
+        verdict: record.verdict,
+        risk_score: record.riskScore,
+        confidence: record.confidence,
+        authentication: record.authentication,
+        extracted_ip: record.extractedIp,
+        extracted_domains: record.extractedDomains,
+        estimated_geo: record.estimatedGeo,
+        nlp_indicators: record.nlpIndicators,
+        campaign_tag: record.campaignTag,
+      },
+      caseId: record._id
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Failed to fetch case' });
+  }
+});
+
 router.get('/audit-log', async (req, res) => {
   try {
     const logs = await AuditLog.find().sort({ timestamp: -1 }).limit(50);

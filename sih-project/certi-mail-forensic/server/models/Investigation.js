@@ -12,6 +12,7 @@ const investigationSchema = new mongoose.Schema({
     dmarc: String
   },
   extractedIp: String,
+  extractedDomains: [String],
   estimatedGeo: {
     city: String,
     country: String,
@@ -22,14 +23,16 @@ const investigationSchema = new mongoose.Schema({
   nlpIndicators: [String],
   campaignTag: String,
   mlLabel: String,
+  fullReport: mongoose.Schema.Types.Mixed, // stores the complete analyzer response, for reopening a case later
   createdAt: { type: Date, default: Date.now },
 }, {
   collection: 'investigations'
 });
 
-// Retention policy: auto-delete investigations after 90 days by default.
-// Mongo TTL indexes run in the background — this doesn't block reads/writes.
 investigationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 90 });
+investigationSchema.index({ extractedIp: 1 });
+investigationSchema.index({ extractedDomains: 1 });
+investigationSchema.index({ verdict: 1 });
 
 const Investigation = mongoose.models.Investigation || mongoose.model('Investigation', investigationSchema);
 

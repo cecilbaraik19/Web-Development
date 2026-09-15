@@ -7,6 +7,7 @@ import L from 'leaflet';
 import ThreatGraph from './components/ThreatGraph';
 import ExportReport from './components/ExportReport';
 import MatrixRain from './components/MatrixRain';
+import CaseManager from './components/CaseManager';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -208,6 +209,13 @@ export default function App() {
                 ))}
               </div>
             </div>
+
+            <CaseManager
+              onOpenCase={(reportData, id) => {
+                setReport(reportData);
+                setCaseId(id);
+              }}
+            />
           </div>
 
           <div className="lg:col-span-7 flex flex-col gap-6">
