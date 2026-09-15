@@ -7,18 +7,6 @@ import L from 'leaflet';
 import ThreatGraph from './components/ThreatGraph';
 import ExportReport from './components/ExportReport';
 
-
-const res = await axios.get(`${BACKEND_URL}/api/history`, {
-  headers: { 'x-client-key': import.meta.env.VITE_CLIENT_KEY }
-});
-
-const response = await axios.post(`${BACKEND_URL}/api/investigate`, {
-  emailContent: emailText
-}, {
-  timeout: 60000,
-  headers: { 'x-client-key': import.meta.env.VITE_CLIENT_KEY }
-});
-
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -33,10 +21,14 @@ export default function App() {
   const [caseId, setCaseId] = useState(null);
   const [history, setHistory] = useState([]);
 
+  const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://certimail-forensic.onrender.com';
+  const CLIENT_KEY = import.meta.env.VITE_CLIENT_KEY;
+
   const fetchHistory = async () => {
     try {
-      const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://certimail-forensic.onrender.com';
-      const res = await axios.get(`${BACKEND_URL}/api/history`);
+      const res = await axios.get(`${BACKEND_URL}/api/history`, {
+        headers: { 'x-client-key': CLIENT_KEY }
+      });
       setHistory(res.data);
     } catch (err) {
       console.error('Failed to load history');
@@ -51,10 +43,12 @@ export default function App() {
     if (!emailText) return;
     setLoading(true);
     try {
-      const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://certimail-forensic.onrender.com';
       const response = await axios.post(`${BACKEND_URL}/api/investigate`, {
         emailContent: emailText
-      }, { timeout: 60000 });
+      }, {
+        timeout: 60000,
+        headers: { 'x-client-key': CLIENT_KEY }
+      });
       setReport(response.data.report);
       setCaseId(response.data.caseId);
       fetchHistory();
@@ -155,6 +149,20 @@ export default function App() {
                 </div>
               </div>
 
+              {report.ml_classification && (
+                <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
+                  <h4 className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">ML Classifier Output</h4>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-mono text-cyan-400 uppercase">{report.ml_classification.label}</span>
+                    <div className="flex gap-3 text-xs text-slate-400">
+                      {Object.entries(report.ml_classification.probabilities || {}).map(([label, pct]) => (
+                        <span key={label}>{label}: {pct}%</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-3 gap-4">
                 {Object.entries(report.authentication).map(([key, value]) => (
                   <div key={key} className="bg-slate-900 border border-slate-800 p-4 rounded-xl text-center">
@@ -171,6 +179,17 @@ export default function App() {
                 ))}
               </div>
 
+              {report.header_alignment_issues && (
+                <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
+                  <h4 className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">Header Alignment Check</h4>
+                  <ul className="list-disc list-inside text-xs text-slate-300 space-y-1">
+                    {report.header_alignment_issues.map((issue, idx) => (
+                      <li key={idx}>{issue}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl flex flex-col justify-between">
                 <div>
                   <h4 className="text-xs text-slate-400 flex items-center gap-1 mb-2"><Server size={14}/> Extracted IP & Domains</h4>
@@ -178,6 +197,11 @@ export default function App() {
                   <div className="mt-2 text-xs text-slate-400">
                     Domains: {report.extracted_domains ? report.extracted_domains.join(', ') : 'None'}
                   </div>
+                  {report.infrastructure_masking?.is_likely_masked && (
+                    <div className="mt-2 text-xs text-amber-400 flex items-center gap-1">
+                      <AlertTriangle size={12} /> Likely VPN/Hosting infrastructure detected ({report.infrastructure_masking.matched_signature})
+                    </div>
+                  )}
                 </div>
                 <div className="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center">
                   <div>
@@ -201,17 +225,19 @@ export default function App() {
                   </div>
                   <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
                     <span className="text-slate-500 block text-[10px]">MX Records</span>
-                    <span className="font-medium text-cyan-400 truncate block">{report.whois_data?.mx_records || 'N/A'}</span>
+                    <span className="font-medium text-cyan-400 truncate block">
+                      {report.mx_records ? report.mx_records.join(', ') : 'N/A'}
+                    </span>
                   </div>
                   <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
                     <span className="text-slate-500 block text-[10px]">DNSSEC Status</span>
-                    <span className="font-medium text-emerald-400">{report.whois_data?.dnssec || 'Validated'}</span>
+                    <span className="font-medium text-emerald-400">{report.whois_data?.dnssec || 'Unknown'}</span>
                   </div>
                 </div>
               </div>
 
               <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-                <h4 className="text-xs text-slate-400 mb-2">Detect Language Risk Indicators</h4>
+                <h4 className="text-xs text-slate-400 mb-2">Detected Language Risk Indicators</h4>
                 <ul className="list-disc list-inside text-xs text-slate-300 space-y-1">
                   {report.nlp_indicators.map((indicator, idx) => (
                     <li key={idx}>{indicator}</li>
