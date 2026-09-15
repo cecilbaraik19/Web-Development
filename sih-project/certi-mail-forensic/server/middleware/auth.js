@@ -1,10 +1,23 @@
-export function verifyClientKey(req, res, next) {
-  const requiredKey = process.env.CLIENT_API_KEY;
-  if (!requiredKey) return next(); // if unset, auth is off (dev mode)
+import jwt from 'jsonwebtoken';
 
-  const providedKey = req.headers['x-client-key'];
-  if (providedKey !== requiredKey) {
-    return res.status(401).json({ status: 'error', message: 'Unauthorized: missing or invalid API key' });
+const JWT_SECRET = process.env.JWT_SECRET || 'change_this_in_production';
+
+export function verifySessionToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+  if (!token) {
+    return res.status(401).json({ status: 'error', message: 'Unauthorized: no session token provided. Please log in.' });
   }
-  next();
+
+  try {
+    jwt.verify(token, JWT_SECRET);
+    next();
+  } catch (err) {
+    return res.status(401).json({ status: 'error', message: 'Unauthorized: session expired or invalid. Please log in again.' });
+  }
+}
+
+export function issueSessionToken() {
+  return jwt.sign({ role: 'analyst' }, JWT_SECRET, { expiresIn: '8h' });
 }

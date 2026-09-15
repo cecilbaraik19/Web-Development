@@ -8,13 +8,12 @@ export default function AuditLogViewer() {
   const [expanded, setExpanded] = useState(false);
 
   const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://certimail-forensic.onrender.com';
-  const CLIENT_KEY = import.meta.env.VITE_CLIENT_KEY;
 
   const fetchLogs = async () => {
     setLoading(true);
     try {
       const res = await axios.get(`${BACKEND_URL}/api/audit-log`, {
-        headers: { 'x-client-key': CLIENT_KEY }
+        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('certimail_token')}` }
       });
       setLogs(res.data);
     } catch (err) {

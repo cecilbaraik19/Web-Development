@@ -14,7 +14,10 @@ export default function CaseManager({ onOpenCase }) {
   const [loading, setLoading] = useState(false);
 
   const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://certimail-forensic.onrender.com';
-  const CLIENT_KEY = import.meta.env.VITE_CLIENT_KEY;
+
+  const authHeader = () => ({
+    'Authorization': `Bearer ${sessionStorage.getItem('certimail_token')}`
+  });
 
   const fetchCases = useCallback(async () => {
     setLoading(true);
@@ -27,7 +30,7 @@ export default function CaseManager({ onOpenCase }) {
 
       const res = await axios.get(`${BACKEND_URL}/api/cases`, {
         params,
-        headers: { 'x-client-key': CLIENT_KEY }
+        headers: authHeader()
       });
       setCases(res.data.cases);
       setTotalPages(res.data.totalPages);
@@ -47,7 +50,7 @@ export default function CaseManager({ onOpenCase }) {
   const handleOpenCase = async (caseId) => {
     try {
       const res = await axios.get(`${BACKEND_URL}/api/cases/${caseId}`, {
-        headers: { 'x-client-key': CLIENT_KEY }
+        headers: authHeader()
       });
       onOpenCase(res.data.report, res.data.caseId);
     } catch (err) {
