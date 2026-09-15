@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { ShieldAlert, Server, MapPin, CheckCircle, XCircle, Search, History, Globe, Layers, AlertTriangle, X, LogOut } from 'lucide-react';
+import { ShieldAlert, Server, MapPin, CheckCircle, XCircle, Search, History, Globe, Layers, AlertTriangle, X } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -10,7 +10,6 @@ import MatrixRain from './components/MatrixRain';
 import CaseManager from './components/CaseManager';
 import RelatedCases from './components/RelatedCases';
 import AuditLogViewer from './components/AuditLogViewer';
-import Login from './components/Login';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -48,7 +47,6 @@ function useCountUp(target, duration = 700) {
 }
 
 export default function App() {
-  const [token, setToken] = useState(() => sessionStorage.getItem('certimail_token'));
   const [emailText, setEmailText] = useState('');
   const [loading, setLoading] = useState(false);
   const [scanLine, setScanLine] = useState(0);
@@ -62,13 +60,11 @@ export default function App() {
 
   const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://certimail-forensic.onrender.com';
 
-  const authHeader = () => ({ 'Authorization': `Bearer ${token}` });
-
   const animatedRisk = useCountUp(report?.risk_score);
 
   const fetchHistory = async () => {
     try {
-      const res = await axios.get(`${BACKEND_URL}/api/history`, { headers: authHeader() });
+      const res = await axios.get(`${BACKEND_URL}/api/history`);
       setHistory(res.data);
     } catch (err) {
       console.error('Failed to load history');
@@ -76,8 +72,8 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (token) fetchHistory();
-  }, [token]);
+    fetchHistory();
+  }, []);
 
   useEffect(() => {
     if (loading) {
@@ -98,10 +94,7 @@ export default function App() {
       const response = await axios.post(`${BACKEND_URL}/api/investigate`, {
         emailContent: emailText,
         maskBeforeStorage
-      }, {
-        timeout: 60000,
-        headers: authHeader()
-      });
+      }, { timeout: 60000 });
       setReport(response.data.report);
       setCaseId(response.data.caseId);
       setClusterId(response.data.clusterId);
@@ -124,7 +117,7 @@ export default function App() {
 
   const handleOpenCase = async (id) => {
     try {
-      const res = await axios.get(`${BACKEND_URL}/api/cases/${id}`, { headers: authHeader() });
+      const res = await axios.get(`${BACKEND_URL}/api/cases/${id}`);
       setReport(res.data.report);
       setCaseId(res.data.caseId);
       setClusterId(res.data.clusterId);
@@ -135,18 +128,8 @@ export default function App() {
     }
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('certimail_token');
-    setToken(null);
-    handleClear();
-  };
-
   const verdictGlow = (v) =>
     v === 'MALICIOUS' ? 'shadow-glow-red' : v === 'SUSPICIOUS' ? 'shadow-glow-amber' : 'shadow-glow-emerald';
-
-  if (!token) {
-    return <Login onLoginSuccess={(t) => setToken(t)} />;
-  }
 
   return (
     <div className="min-h-screen relative bg-slate-950 text-slate-100 overflow-hidden">
@@ -163,17 +146,9 @@ export default function App() {
             </h1>
             <p className="text-xs text-slate-400 mt-1">Unified Email Threat & Infrastructure Analyzer</p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400 bg-slate-900/70 border border-slate-800 rounded-lg px-3 py-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-glow shadow-glow-emerald"></span>
-              SYSTEM ONLINE
-            </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-400 bg-slate-900/70 border border-slate-800 rounded-lg px-3 py-1.5 transition-colors"
-            >
-              <LogOut size={12} /> Logout
-            </button>
+          <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400 bg-slate-900/70 border border-slate-800 rounded-lg px-3 py-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-glow shadow-glow-emerald"></span>
+            SYSTEM ONLINE
           </div>
         </header>
 

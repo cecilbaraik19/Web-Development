@@ -12,9 +12,7 @@ export default function AuditLogViewer() {
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${BACKEND_URL}/api/audit-log`, {
-        headers: { 'Authorization': `Bearer ${sessionStorage.getItem('certimail_token')}` }
-      });
+      const res = await axios.get(`${BACKEND_URL}/api/audit-log`);
       setLogs(res.data);
     } catch (err) {
       console.error('Failed to load audit log');
