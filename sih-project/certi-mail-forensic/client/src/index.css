@@ -2,7 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+.scanline-overlay {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(34, 211, 238, 0.025) 0px,
+    rgba(34, 211, 238, 0.025) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #020617; }
+::-webkit-scrollbar-thumb { background: #164e63; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #22d3ee; }
+
 button:focus-visible, textarea:focus-visible, a:focus-visible {
   outline: 2px solid #22d3ee;
   outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-glow, .animate-blink, .animate-scan { animation: none; }
 }
