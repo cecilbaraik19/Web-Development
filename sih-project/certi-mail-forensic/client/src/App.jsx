@@ -8,6 +8,7 @@ import ThreatGraph from './components/ThreatGraph';
 import ExportReport from './components/ExportReport';
 import MatrixRain from './components/MatrixRain';
 import CaseManager from './components/CaseManager';
+import RelatedCases from './components/RelatedCases';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -24,6 +25,7 @@ const SCAN_SEQUENCE = [
   '> running ML phishing classifier...',
   '> checking SPF / DKIM / DMARC alignment...',
   '> cross-referencing threat intelligence...',
+  '> correlating with case history...',
   '> compiling forensic report...',
 ];
 
@@ -49,6 +51,8 @@ export default function App() {
   const [scanLine, setScanLine] = useState(0);
   const [report, setReport] = useState(null);
   const [caseId, setCaseId] = useState(null);
+  const [clusterId, setClusterId] = useState(null);
+  const [relatedCases, setRelatedCases] = useState([]);
   const [history, setHistory] = useState([]);
   const [maskBeforeStorage, setMaskBeforeStorage] = useState(true);
   const intervalRef = useRef(null);
@@ -98,6 +102,8 @@ export default function App() {
       });
       setReport(response.data.report);
       setCaseId(response.data.caseId);
+      setClusterId(response.data.clusterId);
+      setRelatedCases(response.data.relatedCases || []);
       fetchHistory();
     } catch (err) {
       alert('Error connecting to backend server or Python service timeout.');
@@ -110,6 +116,23 @@ export default function App() {
     setEmailText('');
     setReport(null);
     setCaseId(null);
+    setClusterId(null);
+    setRelatedCases([]);
+  };
+
+  const handleOpenCase = async (id) => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/api/cases/${id}`, {
+        headers: { 'x-client-key': CLIENT_KEY }
+      });
+      setReport(res.data.report);
+      setCaseId(res.data.caseId);
+      setClusterId(res.data.clusterId);
+      setRelatedCases(res.data.relatedCases || []);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      alert('Failed to open case');
+    }
   };
 
   const verdictGlow = (v) =>
@@ -210,12 +233,7 @@ export default function App() {
               </div>
             </div>
 
-            <CaseManager
-              onOpenCase={(reportData, id) => {
-                setReport(reportData);
-                setCaseId(id);
-              }}
-            />
+            <CaseManager onOpenCase={(reportData, id) => handleOpenCase(id)} />
           </div>
 
           <div className="lg:col-span-7 flex flex-col gap-6">
@@ -233,7 +251,9 @@ export default function App() {
                   </div>
                   <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-xs">
                     <AlertTriangle size={14} className="text-amber-400" />
-                    <span className="text-slate-300 font-medium">Multi-Vector Cluster Linked</span>
+                    <span className="text-slate-300 font-medium">
+                      {relatedCases.length > 0 ? `${relatedCases.length} Linked Case(s)` : 'No Prior Links'}
+                    </span>
                   </div>
                 </div>
 
@@ -257,6 +277,8 @@ export default function App() {
                     <div className="text-3xl font-extrabold font-mono">{animatedRisk}/100</div>
                   </div>
                 </div>
+
+                <RelatedCases clusterId={clusterId} relatedCases={relatedCases} onOpenCase={handleOpenCase} />
 
                 {report.ml_classification && (
                   <div className="bg-slate-900/90 backdrop-blur-sm border border-slate-800 p-5 rounded-xl hover:border-cyan-800 transition-all">

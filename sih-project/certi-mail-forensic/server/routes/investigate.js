@@ -3,6 +3,7 @@ import axios from 'axios';
 import Investigation from '../models/Investigation.js';
 import AuditLog from '../models/AuditLog.js';
 import { maskSensitiveContent } from '../utils/masking.js';
+import { findRelatedCases, assignClusterId } from '../utils/correlation.js';
 
 const router = express.Router();
 
@@ -26,7 +27,19 @@ router.post('/investigate', async (req, res) => {
     const contentToStore = shouldMask ? maskSensitiveContent(emailContent) : emailContent;
 
     let recordId = "demo-case-998877";
+    let relatedCases = [];
+    let clusterId = null;
+
     try {
+      const correlationInput = {
+        extractedIp: data.extracted_ip,
+        extractedDomains: data.extracted_domains || [],
+        estimatedGeo: data.estimated_geo,
+      };
+
+      relatedCases = await findRelatedCases(correlationInput);
+      clusterId = assignClusterId(relatedCases);
+
       const newRecord = new Investigation({
         rawEmail: contentToStore,
         wasMasked: shouldMask,
@@ -39,11 +52,21 @@ router.post('/investigate', async (req, res) => {
         estimatedGeo: data.estimated_geo,
         nlpIndicators: data.nlp_indicators,
         campaignTag: data.campaign_tag,
+        clusterId,
         mlLabel: data.ml_classification?.label,
         fullReport: data,
       });
       await newRecord.save();
       recordId = newRecord._id;
+
+      // Backfill: any related case that didn't already have a cluster now joins this one
+      const idsToBackfill = relatedCases.filter((c) => !c.clusterId).map((c) => c._id);
+      if (idsToBackfill.length > 0) {
+        await Investigation.updateMany(
+          { _id: { $in: idsToBackfill } },
+          { $set: { clusterId } }
+        );
+      }
 
       await AuditLog.create({
         action: 'ANALYZE_EMAIL',
@@ -55,10 +78,17 @@ router.post('/investigate', async (req, res) => {
         wasMasked: shouldMask,
       });
     } catch (dbErr) {
-      console.log('--> DB Save or audit log skipped:', dbErr.message);
+      console.log('--> DB Save, correlation, or audit log skipped:', dbErr.message);
     }
 
-    return res.json({ status: 'success', report: data, caseId: recordId, wasMasked: shouldMask });
+    return res.json({
+      status: 'success',
+      report: data,
+      caseId: recordId,
+      wasMasked: shouldMask,
+      clusterId,
+      relatedCases,
+    });
   } catch (error) {
     console.error('Investigate Error:', error.response?.data || error.message);
     res.status(500).json({
@@ -77,24 +107,20 @@ router.get('/history', async (req, res) => {
   }
 });
 
-// Case search + pagination
 router.get('/cases', async (req, res) => {
   try {
     const { query, verdict, dateFrom, dateTo, page = 1, limit = 10 } = req.query;
     const filter = {};
 
-    if (verdict && verdict !== 'ALL') {
-      filter.verdict = verdict;
-    }
-
+    if (verdict && verdict !== 'ALL') filter.verdict = verdict;
     if (query) {
       filter.$or = [
         { extractedIp: { $regex: query, $options: 'i' } },
         { extractedDomains: { $regex: query, $options: 'i' } },
         { campaignTag: { $regex: query, $options: 'i' } },
+        { clusterId: { $regex: query, $options: 'i' } },
       ];
     }
-
     if (dateFrom || dateTo) {
       filter.createdAt = {};
       if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
@@ -106,32 +132,28 @@ router.get('/cases', async (req, res) => {
     const skip = (pageNum - 1) * limitNum;
 
     const [cases, total] = await Promise.all([
-      Investigation.find(filter)
-        .select('-rawEmail -fullReport') // lighter payload for list view
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limitNum),
+      Investigation.find(filter).select('-rawEmail -fullReport').sort({ createdAt: -1 }).skip(skip).limit(limitNum),
       Investigation.countDocuments(filter)
     ]);
 
-    res.json({
-      cases,
-      total,
-      page: pageNum,
-      totalPages: Math.ceil(total / limitNum)
-    });
+    res.json({ cases, total, page: pageNum, totalPages: Math.ceil(total / limitNum) });
   } catch (error) {
     res.status(500).json({ status: 'error', message: 'Failed to search cases' });
   }
 });
 
-// Reopen a single past case with its full report
 router.get('/cases/:id', async (req, res) => {
   try {
     const record = await Investigation.findById(req.params.id);
-    if (!record) {
-      return res.status(404).json({ status: 'error', message: 'Case not found' });
-    }
+    if (!record) return res.status(404).json({ status: 'error', message: 'Case not found' });
+
+    const correlationInput = {
+      extractedIp: record.extractedIp,
+      extractedDomains: record.extractedDomains || [],
+      estimatedGeo: record.estimatedGeo,
+    };
+    const relatedCases = await findRelatedCases(correlationInput, record._id);
+
     res.json({
       status: 'success',
       report: record.fullReport || {
@@ -145,7 +167,9 @@ router.get('/cases/:id', async (req, res) => {
         nlp_indicators: record.nlpIndicators,
         campaign_tag: record.campaignTag,
       },
-      caseId: record._id
+      caseId: record._id,
+      clusterId: record.clusterId,
+      relatedCases,
     });
   } catch (error) {
     res.status(500).json({ status: 'error', message: 'Failed to fetch case' });

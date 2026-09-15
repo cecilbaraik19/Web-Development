@@ -22,8 +22,9 @@ const investigationSchema = new mongoose.Schema({
   },
   nlpIndicators: [String],
   campaignTag: String,
+  clusterId: String, // real cross-case grouping — set when this case shares indicators with prior cases
   mlLabel: String,
-  fullReport: mongoose.Schema.Types.Mixed, // stores the complete analyzer response, for reopening a case later
+  fullReport: mongoose.Schema.Types.Mixed,
   createdAt: { type: Date, default: Date.now },
 }, {
   collection: 'investigations'
@@ -33,6 +34,7 @@ investigationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 *
 investigationSchema.index({ extractedIp: 1 });
 investigationSchema.index({ extractedDomains: 1 });
 investigationSchema.index({ verdict: 1 });
+investigationSchema.index({ clusterId: 1 });
 
 const Investigation = mongoose.models.Investigation || mongoose.model('Investigation', investigationSchema);
 
