@@ -3,15 +3,15 @@ import axios from 'axios';
 
 const router = express.Router();
 
-router.get('/lookup-ip/:ip', async (req, res) => {
-  const { ip } = req.params;
+export async function checkIpReputation(ip) {
   const abuseKey = process.env.ABUSEIPDB_KEY;
 
+  if (!ip || ip === 'Unknown' || ip === '0.0.0.0') {
+    return { available: false, reason: 'No valid IP to check' };
+  }
+
   if (!abuseKey) {
-    return res.json({
-      status: 'success',
-      data: { ip, reputationScore: null, note: 'ABUSEIPDB_KEY not configured — real lookup unavailable' }
-    });
+    return { available: false, reason: 'ABUSEIPDB_KEY not configured' };
   }
 
   try {
@@ -22,20 +22,25 @@ router.get('/lookup-ip/:ip', async (req, res) => {
     });
 
     const d = response.data.data;
-    return res.json({
-      status: 'success',
-      data: {
-        ip,
-        reputationScore: d.abuseConfidenceScore,
-        totalReports: d.totalReports,
-        isTorExitNode: d.isTor || false,
-        countryCode: d.countryCode,
-        isp: d.isp || 'Unknown'
-      }
-    });
+    return {
+      available: true,
+      ip,
+      reputationScore: d.abuseConfidenceScore,
+      totalReports: d.totalReports,
+      isTorExitNode: d.isTor || false,
+      countryCode: d.countryCode,
+      isp: d.isp || 'Unknown',
+      lastReportedAt: d.lastReportedAt || null,
+    };
   } catch (error) {
-    return res.status(500).json({ status: 'error', message: 'Threat lookup failed', detail: error.message });
+    console.log('--> AbuseIPDB lookup failed:', error.message);
+    return { available: false, reason: 'Lookup failed', detail: error.message };
   }
+}
+
+router.get('/lookup-ip/:ip', async (req, res) => {
+  const result = await checkIpReputation(req.params.ip);
+  return res.json({ status: 'success', data: result });
 });
 
 export default router;

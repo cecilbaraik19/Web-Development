@@ -20,9 +20,15 @@ const investigationSchema = new mongoose.Schema({
     lon: Number,
     isp: String
   },
+  threatIntel: {
+    available: Boolean,
+    reputationScore: Number,
+    totalReports: Number,
+    isTorExitNode: Boolean,
+  },
   nlpIndicators: [String],
   campaignTag: String,
-  clusterId: String, // real cross-case grouping — set when this case shares indicators with prior cases
+  clusterId: String,
   mlLabel: String,
   fullReport: mongoose.Schema.Types.Mixed,
   createdAt: { type: Date, default: Date.now },

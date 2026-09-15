@@ -4,6 +4,7 @@ import Investigation from '../models/Investigation.js';
 import AuditLog from '../models/AuditLog.js';
 import { maskSensitiveContent } from '../utils/masking.js';
 import { findRelatedCases, assignClusterId } from '../utils/correlation.js';
+import { checkIpReputation } from './threatIntel.js';
 
 const router = express.Router();
 
@@ -23,6 +24,21 @@ router.post('/investigate', async (req, res) => {
     });
 
     const data = aiResponse.data;
+
+    // --- Real IP reputation check (previously built but never called) ---
+    const threatIntel = await checkIpReputation(data.extracted_ip);
+    data.threat_intel = threatIntel;
+
+    // Reputation feeds back into risk scoring — a known-abusive IP should raise risk
+    if (threatIntel.available && threatIntel.reputationScore >= 50) {
+      data.risk_score = Math.min(100, data.risk_score + 15);
+      data.nlp_indicators = [
+        `AbuseIPDB reputation score: ${threatIntel.reputationScore}/100 (${threatIntel.totalReports} reports)`,
+        ...data.nlp_indicators
+      ];
+      data.verdict = data.risk_score >= 60 ? 'MALICIOUS' : data.risk_score >= 35 ? 'SUSPICIOUS' : data.verdict;
+    }
+
     const shouldMask = !!maskBeforeStorage;
     const contentToStore = shouldMask ? maskSensitiveContent(emailContent) : emailContent;
 
@@ -50,6 +66,12 @@ router.post('/investigate', async (req, res) => {
         extractedIp: data.extracted_ip,
         extractedDomains: data.extracted_domains || [],
         estimatedGeo: data.estimated_geo,
+        threatIntel: {
+          available: threatIntel.available,
+          reputationScore: threatIntel.reputationScore ?? null,
+          totalReports: threatIntel.totalReports ?? null,
+          isTorExitNode: threatIntel.isTorExitNode ?? false,
+        },
         nlpIndicators: data.nlp_indicators,
         campaignTag: data.campaign_tag,
         clusterId,
@@ -59,7 +81,6 @@ router.post('/investigate', async (req, res) => {
       await newRecord.save();
       recordId = newRecord._id;
 
-      // Backfill: any related case that didn't already have a cluster now joins this one
       const idsToBackfill = relatedCases.filter((c) => !c.clusterId).map((c) => c._id);
       if (idsToBackfill.length > 0) {
         await Investigation.updateMany(
