@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import rateLimit from 'express-rate-limit';
 import threatIntelRoutes from './routes/threatIntel.js';
 import investigateRoutes from './routes/investigate.js';
+import { ensureRetentionIndex, getRetentionDays } from './utils/retention.js';
 
 dotenv.config();
 
@@ -17,7 +18,6 @@ const allowedOrigin = process.env.CORS_ORIGIN || 'https://certi-mail-forensic.ve
 app.use(cors({ origin: [allowedOrigin, 'http://localhost:5173'], credentials: true }));
 app.use(express.json({ limit: '2mb' }));
 
-// Rate limiting stays — real protection against abuse, no login required
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 30,
@@ -30,6 +30,7 @@ app.get('/', (req, res) => {
   res.json({
     status: 'success',
     message: 'CertiMail Forensic Backend is Live!',
+    retentionDays: getRetentionDays(),
     endpoints: { investigate: 'POST /api/investigate', history: 'GET /api/history', intel: 'GET /api/intel' }
   });
 });
@@ -37,7 +38,10 @@ app.get('/', (req, res) => {
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/certimailforensic';
 
 mongoose.connect(MONGODB_URI, { dbName: 'certimailforensic', family: 4, serverSelectionTimeoutMS: 10000 })
-  .then(() => console.log(`Connected to MongoDB. Active Database: ${mongoose.connection.name}`))
+  .then(async () => {
+    console.log(`Connected to MongoDB. Active Database: ${mongoose.connection.name}`);
+    await ensureRetentionIndex();
+  })
   .catch((err) => console.error('MongoDB connection error:', err.message));
 
 app.use('/api/intel', apiLimiter, threatIntelRoutes);

@@ -5,6 +5,7 @@ import AuditLog from '../models/AuditLog.js';
 import { maskSensitiveContent } from '../utils/masking.js';
 import { findRelatedCases, assignClusterId } from '../utils/correlation.js';
 import { checkIpReputation } from './threatIntel.js';
+import { sendHighRiskAlert } from '../utils/alerting.js';
 
 const router = express.Router();
 
@@ -25,11 +26,9 @@ router.post('/investigate', async (req, res) => {
 
     const data = aiResponse.data;
 
-    // --- Real IP reputation check (previously built but never called) ---
     const threatIntel = await checkIpReputation(data.extracted_ip);
     data.threat_intel = threatIntel;
 
-    // Reputation feeds back into risk scoring — a known-abusive IP should raise risk
     if (threatIntel.available && threatIntel.reputationScore >= 50) {
       data.risk_score = Math.min(100, data.risk_score + 15);
       data.nlp_indicators = [
@@ -45,6 +44,7 @@ router.post('/investigate', async (req, res) => {
     let recordId = "demo-case-998877";
     let relatedCases = [];
     let clusterId = null;
+    let alertStatus = { sent: false, reason: 'Not attempted' };
 
     try {
       const correlationInput = {
@@ -98,8 +98,16 @@ router.post('/investigate', async (req, res) => {
         riskScore: data.risk_score,
         wasMasked: shouldMask,
       });
+
+      alertStatus = await sendHighRiskAlert({
+        verdict: data.verdict,
+        riskScore: data.risk_score,
+        extractedIp: data.extracted_ip,
+        campaignTag: data.campaign_tag,
+        caseId: recordId,
+      });
     } catch (dbErr) {
-      console.log('--> DB Save, correlation, or audit log skipped:', dbErr.message);
+      console.log('--> DB Save, correlation, alert, or audit log skipped:', dbErr.message);
     }
 
     return res.json({
@@ -109,6 +117,7 @@ router.post('/investigate', async (req, res) => {
       wasMasked: shouldMask,
       clusterId,
       relatedCases,
+      alertStatus,
     });
   } catch (error) {
     console.error('Investigate Error:', error.response?.data || error.message);
@@ -194,6 +203,57 @@ router.get('/cases/:id', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ status: 'error', message: 'Failed to fetch case' });
+  }
+});
+
+router.get('/correlation-graph/:id', async (req, res) => {
+  try {
+    const record = await Investigation.findById(req.params.id);
+    if (!record) return res.status(404).json({ status: 'error', message: 'Case not found' });
+
+    const correlationInput = {
+      extractedIp: record.extractedIp,
+      extractedDomains: record.extractedDomains || [],
+      estimatedGeo: record.estimatedGeo,
+    };
+    const relatedCases = await findRelatedCases(correlationInput, record._id);
+
+    const nodes = new Map();
+    const links = [];
+
+    const addNode = (id, label, type) => {
+      if (!nodes.has(id)) nodes.set(id, { id, label, type });
+    };
+
+    const addCaseToGraph = (caseData, isCurrent = false) => {
+      const caseNodeId = `case:${caseData._id}`;
+      addNode(caseNodeId, `Case ${String(caseData._id).slice(-6)}${isCurrent ? ' (this case)' : ''}`, isCurrent ? 'current_case' : 'related_case');
+
+      if (caseData.extractedIp) {
+        addNode(caseData.extractedIp, `IP: ${caseData.extractedIp}`, 'ip');
+        links.push({ source: caseNodeId, target: caseData.extractedIp, relation: 'ORIGINATED_FROM' });
+      }
+      (caseData.extractedDomains || []).forEach((d) => {
+        addNode(d, `Domain: ${d}`, 'domain');
+        links.push({ source: caseNodeId, target: d, relation: 'SENT_FROM' });
+      });
+      if (caseData.estimatedGeo?.isp) {
+        addNode(caseData.estimatedGeo.isp, `ISP: ${caseData.estimatedGeo.isp}`, 'isp');
+        links.push({ source: caseNodeId, target: caseData.estimatedGeo.isp, relation: 'HOSTED_ON' });
+      }
+    };
+
+    addCaseToGraph(record, true);
+    relatedCases.forEach((c) => addCaseToGraph(c, false));
+
+    res.json({
+      status: 'success',
+      clusterId: record.clusterId,
+      graph: { nodes: Array.from(nodes.values()), links },
+      relatedCount: relatedCases.length
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Failed to build correlation graph' });
   }
 });
 

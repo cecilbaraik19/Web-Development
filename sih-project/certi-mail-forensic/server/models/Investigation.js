@@ -36,7 +36,10 @@ const investigationSchema = new mongoose.Schema({
   collection: 'investigations'
 });
 
-investigationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 90 });
+// NOTE: no index on createdAt here — retention.js owns that index exclusively
+// (it needs expireAfterSeconds, which must be set/updated dynamically at
+// startup, not fixed in the schema). Declaring it here too would create a
+// duplicate index with conflicting options.
 investigationSchema.index({ extractedIp: 1 });
 investigationSchema.index({ extractedDomains: 1 });
 investigationSchema.index({ verdict: 1 });

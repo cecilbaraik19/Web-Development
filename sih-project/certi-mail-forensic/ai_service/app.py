@@ -3,6 +3,8 @@ from email import policy
 import re
 import json
 import urllib.request
+import difflib
+import base64
 import whois
 import dns.resolver
 from fastapi import FastAPI, Header, HTTPException
@@ -26,11 +28,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Known VPN / hosting / cloud providers commonly used to mask true origin
 HOSTING_VPN_SIGNATURES = [
     "digitalocean", "amazon", "aws", "google cloud", "microsoft azure", "ovh",
     "hetzner", "linode", "vultr", "nordvpn", "expressvpn", "cloudflare",
     "m247", "leaseweb", "contabo", "tor exit"
+]
+
+# Commonly impersonated brands — sender domains are checked for near-matches
+# against this list to catch lookalike/typosquatted domains.
+WATCHED_BRAND_DOMAINS = [
+    "paypal.com", "google.com", "microsoft.com", "apple.com", "amazon.com",
+    "gmail.com", "outlook.com", "facebook.com", "instagram.com", "netflix.com",
+    "bankofamerica.com", "chase.com", "wellsfargo.com", "hdfcbank.com",
+    "icicibank.com", "sbi.co.in", "linkedin.com", "dropbox.com", "adobe.com",
+]
+
+# File extensions that commonly deliver malware via email attachments
+DANGEROUS_EXTENSIONS = [
+    '.exe', '.scr', '.bat', '.cmd', '.com', '.pif', '.vbs', '.vbe', '.js',
+    '.jse', '.wsf', '.wsh', '.ps1', '.msi', '.jar', '.docm', '.xlsm', '.pptm',
+    '.dll', '.iso', '.lnk'
+]
+
+URL_SHORTENER_DOMAINS = [
+    'bit.ly', 'tinyurl.com', 'goo.gl', 't.co', 'ow.ly', 'is.gd', 'buff.ly',
+    'rebrand.ly', 'shorte.st', 'cutt.ly', 'tiny.cc'
 ]
 
 
@@ -114,9 +136,6 @@ class EmailForensicAnalyzer:
             return [f"MX lookup failed: {type(e).__name__}"]
 
     def _extract_received_chain(self, msg):
-        """Walk Received: headers top-to-bottom; the LAST one in the list
-        (closest to the original sender) is the earliest hop, which is what
-        we actually want for origin tracing."""
         received_headers = msg.get_all("Received", [])
         ip_pattern = r'\[?((?:[0-9]{1,3}\.){3}[0-9]{1,3})\]?'
         chain = []
@@ -127,8 +146,6 @@ class EmailForensicAnalyzer:
                 if not (ip.startswith("127.") or ip.startswith("10.") or
                         ip.startswith("192.168.") or ip.startswith("172.")):
                     chain.append(ip)
-        # Received headers are prepended (newest first), so the LAST entry
-        # in the list is the oldest hop = closest to true origin
         return chain
 
     def _check_header_alignment(self, msg, from_header, sender_domain):
@@ -141,6 +158,102 @@ class EmailForensicAnalyzer:
             issues.append(f"Reply-To domain differs from sender domain — replies may route elsewhere")
         return issues
 
+    def _check_typosquatting(self, sender_domain: str):
+        """Compares the sender domain against a watchlist of commonly
+        impersonated brand domains using string similarity. Catches
+        lookalikes like 'paypa1.com' or 'micros0ft-support.com'."""
+        if not sender_domain:
+            return []
+
+        findings = []
+        sender_lower = sender_domain.lower()
+
+        for brand in WATCHED_BRAND_DOMAINS:
+            if sender_lower == brand:
+                continue  # exact match = legitimate, not a lookalike
+
+            brand_name = brand.split('.')[0]
+            sender_name = sender_lower.split('.')[0]
+
+            similarity = difflib.SequenceMatcher(None, sender_name, brand_name).ratio()
+
+            # High similarity but not identical = likely typosquat
+            if 0.75 <= similarity < 1.0:
+                findings.append({
+                    "impersonated_brand": brand,
+                    "similarity_score": round(similarity * 100, 1)
+                })
+            # Also catch brand name embedded in a longer suspicious domain
+            elif brand_name in sender_lower and sender_lower != brand:
+                findings.append({
+                    "impersonated_brand": brand,
+                    "similarity_score": None,
+                    "note": f"Brand name '{brand_name}' embedded in unrelated domain"
+                })
+
+        return findings
+
+    def _check_obfuscated_urls(self, urls: list):
+        """Flags URLs that use common obfuscation techniques: shorteners,
+        raw IP addresses instead of domains, @ symbol redirects, or
+        excessive/suspicious subdomain nesting."""
+        findings = []
+
+        for url in urls:
+            reasons = []
+            url_lower = url.lower()
+
+            for shortener in URL_SHORTENER_DOMAINS:
+                if shortener in url_lower:
+                    reasons.append(f"URL shortener detected ({shortener})")
+                    break
+
+            ip_literal_pattern = r'https?://(?:\d{1,3}\.){3}\d{1,3}'
+            if re.search(ip_literal_pattern, url):
+                reasons.append("Raw IP address used instead of domain name")
+
+            if '@' in url:
+                reasons.append("Contains '@' — may redirect to a different host than displayed")
+
+            subdomain_count = url_lower.split('//')[-1].split('/')[0].count('.')
+            if subdomain_count >= 4:
+                reasons.append(f"Excessive subdomain nesting ({subdomain_count} levels)")
+
+            if '%' in url and len(re.findall(r'%[0-9a-fA-F]{2}', url)) >= 3:
+                reasons.append("Heavily URL-encoded — may hide the true destination")
+
+            if reasons:
+                findings.append({"url": url, "reasons": reasons})
+
+        return findings
+
+    def _analyze_attachments(self, msg):
+        """Walks MIME parts looking for attachments, flags dangerous file
+        types and double-extension tricks (e.g. 'invoice.pdf.exe')."""
+        findings = []
+
+        for part in msg.walk():
+            content_disposition = str(part.get("Content-Disposition", ""))
+            filename = part.get_filename()
+
+            if filename:
+                filename_lower = filename.lower()
+                ext_matches = [ext for ext in DANGEROUS_EXTENSIONS if filename_lower.endswith(ext)]
+
+                double_ext = bool(re.search(r'\.\w{2,4}\.\w{2,4}$', filename_lower))
+
+                if ext_matches or double_ext:
+                    reasons = []
+                    if ext_matches:
+                        reasons.append(f"Dangerous file type: {ext_matches[0]}")
+                    if double_ext:
+                        reasons.append("Double file extension (possible disguise)")
+                    findings.append({"filename": filename, "reasons": reasons})
+                elif "attachment" in content_disposition.lower():
+                    findings.append({"filename": filename, "reasons": ["Attachment present — verify sender before opening"]})
+
+        return findings
+
     def analyze(self, raw_text: str):
         msg = email.message_from_string(raw_text, policy=policy.default)
 
@@ -149,12 +262,10 @@ class EmailForensicAnalyzer:
         subject_header = str(msg.get("Subject", ""))
         auth_results = str(msg.get("Authentication-Results", ""))
 
-        # --- Origin tracing via real Received-header chain walk ---
         received_chain = self._extract_received_chain(msg)
         if received_chain:
-            origin_ip = received_chain[-1]  # earliest hop = closest to true sender
+            origin_ip = received_chain[-1]
         else:
-            # fallback: whole-text scan only if no Received headers exist
             ip_pattern = r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
             found_ips = re.findall(ip_pattern, raw_text)
             public_ips = [ip for ip in found_ips if not (ip.startswith("127.") or ip.startswith("10.") or ip.startswith("192.168.") or ip.startswith("172."))]
@@ -174,7 +285,6 @@ class EmailForensicAnalyzer:
         url_pattern = r'https?://[^\s<>"]+|www\.[^\s<>"]+'
         urls_found = list(set(re.findall(url_pattern, raw_text)))
 
-        # --- ML classification (replaces keyword-only scoring) ---
         body_text = msg.get_body(preferencelist=('plain', 'html'))
         body_str = body_text.get_content() if body_text else raw_text
         ml_label, ml_confidence, ml_probabilities = classify_email(subject_header, body_str)
@@ -187,8 +297,10 @@ class EmailForensicAnalyzer:
             nlp_indicators.append("No explicit social engineering keyword cues found")
         nlp_indicators.insert(0, f"ML classifier verdict: '{ml_label}' ({ml_confidence}% confidence)")
 
-        # --- Header alignment / spoofing checks ---
         alignment_issues = self._check_header_alignment(msg, from_header, sender_domain)
+        typosquat_findings = self._check_typosquatting(sender_domain)
+        obfuscated_url_findings = self._check_obfuscated_urls(urls_found)
+        attachment_findings = self._analyze_attachments(msg)
 
         geo_data = self._get_live_ip_geo(origin_ip)
         whois_intelligence = self._get_live_whois(sender_domain)
@@ -198,12 +310,14 @@ class EmailForensicAnalyzer:
         auth_dict = {"spf": spf_status, "dkim": dkim_status, "dmarc": dmarc_status}
         failed_auth_count = sum(1 for v in auth_dict.values() if v in ["FAIL", "FAILED", "REJECT"])
 
-        # --- Combined risk score: auth + ML + header alignment + masking ---
         risk_score = 5
         risk_score += (failed_auth_count * 20)
         risk_score += (30 if ml_label == "phishing" else 20 if ml_label == "bec" else 0)
         risk_score += (len(alignment_issues) * 10)
         risk_score += (15 if masking_check["is_likely_masked"] else 0)
+        risk_score += (20 if typosquat_findings else 0)
+        risk_score += (min(len(obfuscated_url_findings), 3) * 8)
+        risk_score += (25 if any('Dangerous file type' in r for f in attachment_findings for r in f['reasons']) else 0)
         if len(urls_found) > 2:
             risk_score += 10
         risk_score = min(risk_score, 100)
@@ -243,6 +357,9 @@ class EmailForensicAnalyzer:
             "ml_classification": {"label": ml_label, "probabilities": ml_probabilities},
             "authentication": auth_dict,
             "header_alignment_issues": alignment_issues if alignment_issues else ["No mismatch detected"],
+            "typosquatting_findings": typosquat_findings,
+            "obfuscated_url_findings": obfuscated_url_findings,
+            "attachment_findings": attachment_findings,
             "extracted_ip": origin_ip,
             "received_chain": received_chain,
             "extracted_domains": found_domains,

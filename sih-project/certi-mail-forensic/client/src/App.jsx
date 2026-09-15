@@ -25,6 +25,8 @@ const SCAN_SEQUENCE = [
   '> querying WHOIS + DNS/MX records...',
   '> running ML phishing classifier...',
   '> checking SPF / DKIM / DMARC alignment...',
+  '> scanning for typosquatting and obfuscated URLs...',
+  '> analyzing attachments...',
   '> cross-referencing threat intelligence...',
   '> correlating with case history...',
   '> compiling forensic report...',
@@ -99,6 +101,17 @@ export default function App() {
       setCaseId(response.data.caseId);
       setClusterId(response.data.clusterId);
       setRelatedCases(response.data.relatedCases || []);
+
+      if (response.data.report.verdict === 'MALICIOUS' && 'Notification' in window) {
+        if (Notification.permission === 'granted') {
+          new Notification('🚨 High-Risk Email Detected', {
+            body: `Risk Score: ${response.data.report.risk_score}/100 · IP: ${response.data.report.extracted_ip}`,
+          });
+        } else if (Notification.permission !== 'denied') {
+          Notification.requestPermission();
+        }
+      }
+
       fetchHistory();
     } catch (err) {
       alert('Error connecting to backend server or Python service timeout.');
@@ -273,7 +286,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <RelatedCases clusterId={clusterId} relatedCases={relatedCases} onOpenCase={handleOpenCase} />
+                <RelatedCases clusterId={clusterId} relatedCases={relatedCases} onOpenCase={handleOpenCase} caseId={caseId} />
 
                 {report.ml_classification && (
                   <div className="bg-slate-900/90 backdrop-blur-sm border border-slate-800 p-5 rounded-xl hover:border-cyan-800 transition-all">
@@ -336,6 +349,50 @@ export default function App() {
                     <ul className="list-disc list-inside text-xs text-slate-300 space-y-1">
                       {report.header_alignment_issues.map((issue, idx) => (
                         <li key={idx}>{issue}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {report.typosquatting_findings?.length > 0 && (
+                  <div className="bg-slate-900/90 backdrop-blur-sm border border-red-900/60 p-5 rounded-xl">
+                    <h4 className="text-xs font-semibold text-red-400 mb-3 uppercase tracking-wider">Typosquatting / Brand Impersonation</h4>
+                    <ul className="text-xs text-slate-300 space-y-1">
+                      {report.typosquatting_findings.map((f, idx) => (
+                        <li key={idx}>
+                          Impersonates <span className="text-red-400 font-mono">{f.impersonated_brand}</span>
+                          {f.similarity_score && ` (${f.similarity_score}% similar)`}
+                          {f.note && ` — ${f.note}`}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {report.obfuscated_url_findings?.length > 0 && (
+                  <div className="bg-slate-900/90 backdrop-blur-sm border border-amber-900/60 p-5 rounded-xl">
+                    <h4 className="text-xs font-semibold text-amber-400 mb-3 uppercase tracking-wider">Obfuscated URLs Detected</h4>
+                    <ul className="text-xs text-slate-300 space-y-2">
+                      {report.obfuscated_url_findings.map((f, idx) => (
+                        <li key={idx}>
+                          <span className="font-mono text-cyan-400 break-all">{f.url}</span>
+                          <ul className="list-disc list-inside text-slate-400 ml-2 mt-0.5">
+                            {f.reasons.map((r, i) => <li key={i}>{r}</li>)}
+                          </ul>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {report.attachment_findings?.length > 0 && (
+                  <div className="bg-slate-900/90 backdrop-blur-sm border border-red-900/60 p-5 rounded-xl">
+                    <h4 className="text-xs font-semibold text-red-400 mb-3 uppercase tracking-wider">Attachment Analysis</h4>
+                    <ul className="text-xs text-slate-300 space-y-1">
+                      {report.attachment_findings.map((f, idx) => (
+                        <li key={idx}>
+                          <span className="font-mono text-cyan-400">{f.filename}</span> — {f.reasons.join(', ')}
+                        </li>
                       ))}
                     </ul>
                   </div>
