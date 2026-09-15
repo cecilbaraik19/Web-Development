@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ShieldAlert, Server, MapPin, CheckCircle, XCircle, Search, History, Globe, Layers, AlertTriangle } from 'lucide-react';
+import { ShieldAlert, Server, MapPin, CheckCircle, XCircle, Search, History, Globe, Layers, AlertTriangle, Terminal } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import ThreatGraph from './components/ThreatGraph';
 import ExportReport from './components/ExportReport';
+import MatrixRain from './components/MatrixRain';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -13,6 +14,16 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
+
+const Panel = ({ children, className = '' }) => (
+  <div className={`bg-matrix-panel border border-matrix-border rounded-none p-5 ${className}`}>
+    {children}
+  </div>
+);
+
+const PanelTitle = ({ children }) => (
+  <h4 className="text-xs text-matrix-green-dim mb-3 tracking-wide">&gt; {children}</h4>
+);
 
 export default function App() {
   const [emailText, setEmailText] = useState('');
@@ -59,219 +70,226 @@ export default function App() {
     }
   };
 
+  const verdictColor = (v) =>
+    v === 'MALICIOUS' ? 'text-matrix-danger border-matrix-danger shadow-glow-red'
+    : v === 'SUSPICIOUS' ? 'text-matrix-warning border-matrix-warning shadow-glow-amber'
+    : 'text-matrix-green border-matrix-green shadow-glow-green';
+
   return (
-    <div className="min-h-screen p-6 font-sans bg-slate-950 text-slate-100">
-      <header className="flex justify-between items-center pb-6 border-b border-slate-800">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-cyan-400">
-            <ShieldAlert /> CertiMail Forensics
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">Unified Email Threat & Infrastructure Analyzer</p>
-        </div>
-      </header>
+    <div className="min-h-screen relative bg-matrix-bg text-matrix-green font-mono">
+      <MatrixRain />
+      <div className="scanline-overlay" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
-        <div className="lg:col-span-5 flex flex-col gap-6">
-          <div className="bg-slate-900 p-5 rounded-xl border border-slate-800 flex flex-col gap-4">
-            <h2 className="text-sm font-semibold text-slate-300">Raw Email / Header Input</h2>
-            <textarea
-              className="w-full h-64 bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 font-mono"
-              placeholder="Paste raw email header or text body here..."
-              value={emailText}
-              onChange={(e) => setEmailText(e.target.value)}
-            />
-            <button
-              onClick={handleAnalyze}
-              disabled={loading}
-              className="w-full bg-cyan-600 hover:bg-cyan-500 py-2.5 rounded-lg font-medium text-sm transition flex items-center justify-center gap-2"
-            >
-              {loading ? 'Analyzing Infrastructure...' : <><Search size={16} /> Run Forensic Analysis</>}
-            </button>
+      <div className="relative z-10 p-6">
+        <header className="flex justify-between items-center pb-6 border-b border-matrix-border animate-flicker">
+          <div>
+            <h1 className="text-3xl font-display flex items-center gap-2 text-matrix-green shadow-glow-green tracking-wider">
+              <Terminal /> CERTIMAIL_FORENSICS
+            </h1>
+            <p className="text-xs text-matrix-green-dim mt-1">&gt; unified_email_threat_and_infrastructure_analyzer.exe</p>
           </div>
-
-          <div className="bg-slate-900 p-5 rounded-xl border border-slate-800">
-            <h3 className="text-xs font-semibold text-slate-400 flex items-center gap-2 mb-3">
-              <History size={14} /> Recent Investigations
-            </h3>
-            <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
-              {history.map((item) => (
-                <div key={item._id} className="p-2.5 bg-slate-950 rounded-lg border border-slate-800/80 flex justify-between items-center text-xs">
-                  <div>
-                    <span className="font-mono text-cyan-400">{item.extractedIp || 'N/A'}</span>
-                    <span className="text-slate-500 block text-[10px]">{new Date(item.createdAt).toLocaleTimeString()}</span>
-                  </div>
-                  <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${
-                    item.verdict === 'MALICIOUS' ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-                  }`}>
-                    {item.verdict}
-                  </span>
-                </div>
-              ))}
-            </div>
+          <div className="text-xs text-matrix-green-dim hidden sm:block">
+            [ SYSTEM_STATUS: <span className="text-matrix-green">ONLINE</span> ]
           </div>
-        </div>
+        </header>
 
-        <div className="lg:col-span-7 flex flex-col gap-6">
-          {report ? (
-            <>
-              <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-cyan-950/60 border border-cyan-800 rounded-lg text-cyan-400">
-                    <Layers size={18} />
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase text-slate-400 tracking-wider">Active Attack Campaign Cluster</span>
-                    <h4 className="text-sm font-mono font-bold text-slate-200">{report.campaign_tag || 'CAMPAIGN-FIN-2026-ALPHA'}</h4>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-xs">
-                  <AlertTriangle size={14} className="text-amber-400" />
-                  <span className="text-slate-300 font-medium">Multi-Vector Cluster Linked</span>
-                </div>
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+          <div className="lg:col-span-5 flex flex-col gap-6">
+            <Panel className="flex flex-col gap-4">
+              <PanelTitle>raw_email_header_input</PanelTitle>
+              <textarea
+                className="w-full h-64 bg-black border border-matrix-border p-3 text-xs text-matrix-green focus:outline-none focus:border-matrix-green focus:shadow-glow-green font-mono resize-none"
+                placeholder="// paste raw email header or text body here..."
+                value={emailText}
+                onChange={(e) => setEmailText(e.target.value)}
+              />
+              <button
+                onClick={handleAnalyze}
+                disabled={loading}
+                className="w-full bg-black border border-matrix-green text-matrix-green hover:bg-matrix-green hover:text-black py-2.5 font-medium text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {loading ? '> ANALYZING_INFRASTRUCTURE...' : <><Search size={16} /> RUN_FORENSIC_ANALYSIS</>}
+              </button>
+            </Panel>
 
-              <div className="flex justify-end">
-                <ExportReport reportData={report} caseId={caseId} />
-              </div>
-
-              <div className={`p-5 rounded-xl border flex justify-between items-center ${
-                report.verdict === 'MALICIOUS' 
-                  ? 'bg-red-950/40 border-red-800 text-red-300' 
-                  : 'bg-emerald-950/40 border-emerald-800 text-emerald-300'
-              }`}>
-                <div>
-                  <span className="text-xs uppercase font-semibold">Overall Verdict</span>
-                  <h3 className="text-2xl font-black">{report.verdict}</h3>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs">Risk Score</span>
-                  <div className="text-3xl font-extrabold">{report.risk_score}/100</div>
-                </div>
-              </div>
-
-              {report.ml_classification && (
-                <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-                  <h4 className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">ML Classifier Output</h4>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-mono text-cyan-400 uppercase">{report.ml_classification.label}</span>
-                    <div className="flex gap-3 text-xs text-slate-400">
-                      {Object.entries(report.ml_classification.probabilities || {}).map(([label, pct]) => (
-                        <span key={label}>{label}: {pct}%</span>
-                      ))}
+            <Panel>
+              <h3 className="text-xs text-matrix-green-dim flex items-center gap-2 mb-3">
+                <History size={14} /> &gt; recent_investigations.log
+              </h3>
+              <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
+                {history.map((item) => (
+                  <div key={item._id} className="p-2.5 bg-black border border-matrix-border flex justify-between items-center text-xs">
+                    <div>
+                      <span className="font-mono text-matrix-green">{item.extractedIp || 'N/A'}</span>
+                      <span className="text-matrix-green-dim block text-[10px]">{new Date(item.createdAt).toLocaleTimeString()}</span>
                     </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="grid grid-cols-3 gap-4">
-                {Object.entries(report.authentication).map(([key, value]) => (
-                  <div key={key} className="bg-slate-900 border border-slate-800 p-4 rounded-xl text-center">
-                    <span className="text-xs uppercase text-slate-400">{key}</span>
-                    <div className="flex items-center justify-center gap-1 mt-1 font-bold text-sm">
-                      {value === 'PASS' || value === 'VERIFIED' || value === 'ALIGNED' ? (
-                        <CheckCircle size={16} className="text-emerald-400" />
-                      ) : (
-                        <XCircle size={16} className="text-red-400" />
-                      )}
-                      {value}
-                    </div>
+                    <span className={`px-2 py-0.5 border font-bold text-[10px] ${
+                      item.verdict === 'MALICIOUS' ? 'border-matrix-danger text-matrix-danger' : 'border-matrix-green text-matrix-green'
+                    }`}>
+                      {item.verdict}
+                    </span>
                   </div>
                 ))}
               </div>
+            </Panel>
+          </div>
 
-              {report.header_alignment_issues && (
-                <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-                  <h4 className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">Header Alignment Check</h4>
-                  <ul className="list-disc list-inside text-xs text-slate-300 space-y-1">
-                    {report.header_alignment_issues.map((issue, idx) => (
-                      <li key={idx}>{issue}</li>
+          <div className="lg:col-span-7 flex flex-col gap-6">
+            {report ? (
+              <>
+                <Panel className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-black border border-matrix-border text-matrix-green">
+                      <Layers size={18} />
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-matrix-green-dim tracking-wider">active_attack_campaign_cluster</span>
+                      <h4 className="text-sm font-mono font-bold text-matrix-green">{report.campaign_tag || 'CLEAN-TRANSMISSION-BASELINE'}</h4>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 bg-black px-3 py-1.5 border border-matrix-warning text-xs">
+                    <AlertTriangle size={14} className="text-matrix-warning" />
+                    <span className="text-matrix-warning font-medium">multi_vector_cluster_linked</span>
+                  </div>
+                </Panel>
+
+                <div className="flex justify-end">
+                  <ExportReport reportData={report} caseId={caseId} />
+                </div>
+
+                <div className={`p-5 border flex justify-between items-center bg-black ${verdictColor(report.verdict)}`}>
+                  <div>
+                    <span className="text-xs">overall_verdict</span>
+                    <h3 className="text-4xl font-display tracking-wider">{report.verdict}</h3>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs">risk_score</span>
+                    <div className="text-4xl font-display">{report.risk_score}/100</div>
+                  </div>
+                </div>
+
+                {report.ml_classification && (
+                  <Panel>
+                    <PanelTitle>ml_classifier_output</PanelTitle>
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <span className="text-lg font-display text-matrix-green tracking-wide">{report.ml_classification.label.toUpperCase()}</span>
+                      <div className="flex gap-3 text-xs text-matrix-green-dim">
+                        {Object.entries(report.ml_classification.probabilities || {}).map(([label, pct]) => (
+                          <span key={label}>{label}: {pct}%</span>
+                        ))}
+                      </div>
+                    </div>
+                  </Panel>
+                )}
+
+                <div className="grid grid-cols-3 gap-4">
+                  {Object.entries(report.authentication).map(([key, value]) => (
+                    <div key={key} className="bg-matrix-panel border border-matrix-border p-4 text-center">
+                      <span className="text-xs text-matrix-green-dim">{key}</span>
+                      <div className={`flex items-center justify-center gap-1 mt-1 font-bold text-sm ${
+                        value === 'PASS' ? 'text-matrix-green' : 'text-matrix-danger'
+                      }`}>
+                        {value === 'PASS' ? <CheckCircle size={16} /> : <XCircle size={16} />}
+                        {value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {report.header_alignment_issues && (
+                  <Panel>
+                    <PanelTitle>header_alignment_check</PanelTitle>
+                    <ul className="list-none text-xs text-matrix-green-dim space-y-1">
+                      {report.header_alignment_issues.map((issue, idx) => (
+                        <li key={idx}>&gt; {issue}</li>
+                      ))}
+                    </ul>
+                  </Panel>
+                )}
+
+                <Panel className="flex flex-col justify-between">
+                  <div>
+                    <h4 className="text-xs text-matrix-green-dim flex items-center gap-1 mb-2"><Server size={14}/> extracted_ip_and_domains</h4>
+                    <p className="font-mono text-matrix-green text-sm">{report.extracted_ip}</p>
+                    <div className="mt-2 text-xs text-matrix-green-dim">
+                      domains: {report.extracted_domains ? report.extracted_domains.join(', ') : 'none'}
+                    </div>
+                    {report.infrastructure_masking?.is_likely_masked && (
+                      <div className="mt-2 text-xs text-matrix-warning flex items-center gap-1">
+                        <AlertTriangle size={12} /> vpn/hosting infrastructure detected ({report.infrastructure_masking.matched_signature})
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-matrix-border flex justify-between items-center">
+                    <div>
+                      <h4 className="text-xs text-matrix-green-dim flex items-center gap-1 mb-1"><MapPin size={14}/> observed_location</h4>
+                      <p className="text-sm font-medium text-matrix-green">{report.estimated_geo.city}, {report.estimated_geo.country}</p>
+                    </div>
+                    <span className="text-xs text-matrix-green-dim font-mono">{report.estimated_geo.isp}</span>
+                  </div>
+                </Panel>
+
+                <Panel>
+                  <PanelTitle>whois_and_registrar_intelligence</PanelTitle>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                    <div className="bg-black p-3 border border-matrix-border">
+                      <span className="text-matrix-green-dim block text-[10px]">registrar</span>
+                      <span className="font-medium text-matrix-green truncate block">{report.whois_data?.registrar || 'N/A'}</span>
+                    </div>
+                    <div className="bg-black p-3 border border-matrix-border">
+                      <span className="text-matrix-green-dim block text-[10px]">creation_date</span>
+                      <span className="font-medium text-matrix-green">{report.whois_data?.creation_date || 'N/A'}</span>
+                    </div>
+                    <div className="bg-black p-3 border border-matrix-border">
+                      <span className="text-matrix-green-dim block text-[10px]">mx_records</span>
+                      <span className="font-medium text-matrix-green truncate block">
+                        {report.mx_records ? report.mx_records.join(', ') : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="bg-black p-3 border border-matrix-border">
+                      <span className="text-matrix-green-dim block text-[10px]">dnssec_status</span>
+                      <span className="font-medium text-matrix-green">{report.whois_data?.dnssec || 'Unknown'}</span>
+                    </div>
+                  </div>
+                </Panel>
+
+                <Panel>
+                  <PanelTitle>detected_language_risk_indicators</PanelTitle>
+                  <ul className="list-none text-xs text-matrix-green-dim space-y-1">
+                    {report.nlp_indicators.map((indicator, idx) => (
+                      <li key={idx}>&gt; {indicator}</li>
                     ))}
                   </ul>
-                </div>
-              )}
+                </Panel>
 
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl flex flex-col justify-between">
-                <div>
-                  <h4 className="text-xs text-slate-400 flex items-center gap-1 mb-2"><Server size={14}/> Extracted IP & Domains</h4>
-                  <p className="font-mono text-cyan-400 text-sm">{report.extracted_ip}</p>
-                  <div className="mt-2 text-xs text-slate-400">
-                    Domains: {report.extracted_domains ? report.extracted_domains.join(', ') : 'None'}
+                <ThreatGraph graphData={report.graph_relationships} />
+
+                <Panel className="overflow-hidden h-[500px] flex flex-col">
+                  <PanelTitle>interactive_transmission_map</PanelTitle>
+                  <div className="flex-1 w-full border border-matrix-border overflow-hidden">
+                    <MapContainer 
+                      center={[report.estimated_geo.lat || 20.5937, report.estimated_geo.lon || 78.9629]} 
+                      zoom={4} 
+                      scrollWheelZoom={false}
+                      style={{ height: "100%", width: "100%", filter: 'grayscale(1) invert(1) hue-rotate(90deg)' }}
+                    >
+                      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                      <Marker position={[report.estimated_geo.lat || 20.5937, report.estimated_geo.lon || 78.9629]}>
+                        <Popup>
+                          Origin Node: {report.extracted_ip}<br />
+                          Location: {report.estimated_geo.city}, {report.estimated_geo.country}
+                        </Popup>
+                      </Marker>
+                    </MapContainer>
                   </div>
-                  {report.infrastructure_masking?.is_likely_masked && (
-                    <div className="mt-2 text-xs text-amber-400 flex items-center gap-1">
-                      <AlertTriangle size={12} /> Likely VPN/Hosting infrastructure detected ({report.infrastructure_masking.matched_signature})
-                    </div>
-                  )}
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center">
-                  <div>
-                    <h4 className="text-xs text-slate-400 flex items-center gap-1 mb-1"><MapPin size={14}/> Observed Location</h4>
-                    <p className="text-sm font-medium">{report.estimated_geo.city}, {report.estimated_geo.country}</p>
-                  </div>
-                  <span className="text-xs text-slate-500 font-mono">{report.estimated_geo.isp}</span>
-                </div>
+                </Panel>
+              </>
+            ) : (
+              <div className="h-full bg-matrix-panel border border-dashed border-matrix-border flex items-center justify-center text-matrix-green-dim text-sm p-12">
+                &gt; awaiting_input :: paste email headers and run analysis to populate results_
               </div>
-
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-                <h4 className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">WHOIS & Registrar Intelligence</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                    <span className="text-slate-500 block text-[10px]">Registrar</span>
-                    <span className="font-medium text-slate-300 truncate block">{report.whois_data?.registrar || 'N/A'}</span>
-                  </div>
-                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                    <span className="text-slate-500 block text-[10px]">Creation Date</span>
-                    <span className="font-medium text-slate-300">{report.whois_data?.creation_date || 'N/A'}</span>
-                  </div>
-                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                    <span className="text-slate-500 block text-[10px]">MX Records</span>
-                    <span className="font-medium text-cyan-400 truncate block">
-                      {report.mx_records ? report.mx_records.join(', ') : 'N/A'}
-                    </span>
-                  </div>
-                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                    <span className="text-slate-500 block text-[10px]">DNSSEC Status</span>
-                    <span className="font-medium text-emerald-400">{report.whois_data?.dnssec || 'Unknown'}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-                <h4 className="text-xs text-slate-400 mb-2">Detected Language Risk Indicators</h4>
-                <ul className="list-disc list-inside text-xs text-slate-300 space-y-1">
-                  {report.nlp_indicators.map((indicator, idx) => (
-                    <li key={idx}>{indicator}</li>
-                  ))}
-                </ul>
-              </div>
-
-              <ThreatGraph graphData={report.graph_relationships} />
-
-              <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl overflow-hidden h-[500px] flex flex-col">
-                <h4 className="text-xs text-slate-400 flex items-center gap-1 mb-3"><Globe size={14}/> Interactive Transmission Map</h4>
-                <div className="flex-1 w-full rounded-lg overflow-hidden border border-slate-800">
-                  <MapContainer 
-                    center={[report.estimated_geo.lat || 20.5937, report.estimated_geo.lon || 78.9629]} 
-                    zoom={4} 
-                    scrollWheelZoom={false}
-                    style={{ height: "100%", width: "100%" }}
-                  >
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                    <Marker position={[report.estimated_geo.lat || 20.5937, report.estimated_geo.lon || 78.9629]}>
-                      <Popup>
-                        Origin Node: {report.extracted_ip}<br />
-                        Location: {report.estimated_geo.city}, {report.estimated_geo.country}
-                      </Popup>
-                    </Marker>
-                  </MapContainer>
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="h-full bg-slate-900/50 border border-slate-800 border-dashed rounded-xl flex items-center justify-center text-slate-500 text-sm p-12">
-              Paste email headers and click Run Analysis to populate results.
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
