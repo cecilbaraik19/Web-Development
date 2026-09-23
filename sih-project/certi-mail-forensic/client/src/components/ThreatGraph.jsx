@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
-import { Maximize2, X } from 'lucide-react';
+import * as d3 from 'd3';
+import { Maximize2, X, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react';
 
 export default function ThreatGraph({ graphData, title = "Threat Relationship Graph" }) {
   const containerRef = useRef(null);
@@ -33,21 +34,33 @@ export default function ThreatGraph({ graphData, title = "Threat Relationship Gr
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
+  // Applies stronger repulsion + collision detection so nodes spread out
+  // instead of clumping together — this is what actually fixes overlap,
+  // not just making the canvas bigger.
+  const tuneForces = (ref, nodeCount) => {
+    if (!ref.current) return;
+    const spread = nodeCount > 12 ? 260 : nodeCount > 6 ? 180 : 120;
+    ref.current.d3Force('charge', d3.forceManyBody().strength(-spread));
+    ref.current.d3Force('link').distance(90).strength(0.5);
+    ref.current.d3Force('collide', d3.forceCollide().radius((n) =>
+      (n.type === 'current_case' || n.type === 'related_case') ? 34 : 26
+    ).strength(0.9));
+  };
+
   useEffect(() => {
     if (fgRef.current && graphData?.nodes?.length > 0) {
-      setTimeout(() => fgRef.current.zoomToFit(500, 40), 400);
+      tuneForces(fgRef, graphData.nodes.length);
+      setTimeout(() => fgRef.current.zoomToFit(600, 50), 500);
     }
   }, [graphData]);
 
   useEffect(() => {
-    if (isFullscreen && fullscreenFgRef.current) {
-      setTimeout(() => fullscreenFgRef.current.zoomToFit(500, 80), 450);
+    if (isFullscreen && fullscreenFgRef.current && graphData?.nodes?.length > 0) {
+      tuneForces(fullscreenFgRef, graphData.nodes.length);
+      setTimeout(() => fullscreenFgRef.current.zoomToFit(600, 90), 550);
     }
   }, [isFullscreen]);
 
-  // Sync React state with the browser's REAL fullscreen state — this is what
-  // actually takes over the entire physical screen (hides tabs/address bar),
-  // not just a large div. Works regardless of any parent CSS.
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -76,6 +89,19 @@ export default function ThreatGraph({ graphData, title = "Threat Relationship Gr
     }
   };
 
+  const resetView = () => {
+    const ref = isFullscreen ? fullscreenFgRef : fgRef;
+    if (ref.current) ref.current.zoomToFit(600, isFullscreen ? 90 : 50);
+  };
+
+  const zoomBy = (factor) => {
+    const ref = isFullscreen ? fullscreenFgRef : fgRef;
+    if (ref.current) {
+      const currentZoom = ref.current.zoom();
+      ref.current.zoom(currentZoom * factor, 300);
+    }
+  };
+
   if (!graphData?.nodes?.length) {
     return (
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-slate-500 text-xs">
@@ -101,10 +127,13 @@ export default function ThreatGraph({ graphData, title = "Threat Relationship Gr
     }
   };
 
-  const nodeCanvasObjectFn = (labelScale = 1) => (node, ctx, globalScale) => {
+  // Labels declutter automatically based on zoom level: when zoomed out on a
+  // dense graph, only the most important labels (current case, IP, ISP,
+  // domain) show, to avoid a wall of overlapping text. Zooming in (scroll
+  // wheel or pinch) reveals every label clearly, one at a time as space opens up.
+  const nodeCanvasObjectFn = (labelScale = 1, declutterThreshold = 0.55) => (node, ctx, globalScale) => {
     if (typeof node.x !== 'number' || typeof node.y !== 'number') return;
     const label = node.label || node.id;
-    const fontSize = Math.max((11 * labelScale) / globalScale, 3.5 * labelScale);
     const color = nodeColor(node.type);
     const radius = (node.type === 'current_case' || node.type === 'related_case') ? 6 : 5;
 
@@ -124,10 +153,15 @@ export default function ThreatGraph({ graphData, title = "Threat Relationship Gr
     ctx.lineWidth = 1;
     ctx.stroke();
 
+    const isPriority = node.type === 'current_case' || node.type === 'ip' || node.type === 'isp';
+    const shouldShowLabel = globalScale >= declutterThreshold || isPriority;
+    if (!shouldShowLabel) return;
+
+    const fontSize = Math.max((11 * labelScale) / globalScale, 3.5 * labelScale);
     ctx.font = `600 ${fontSize}px Inter, sans-serif`;
     const textWidth = ctx.measureText(label).width;
     const padX = 4;
-    ctx.fillStyle = 'rgba(2, 6, 23, 0.8)';
+    ctx.fillStyle = 'rgba(2, 6, 23, 0.85)';
     ctx.fillRect(node.x + radius + 3, node.y - fontSize / 2 - 2, textWidth + padX * 2, fontSize + 4);
 
     ctx.textAlign = 'left';
@@ -136,8 +170,8 @@ export default function ThreatGraph({ graphData, title = "Threat Relationship Gr
     ctx.fillText(label, node.x + radius + 3 + padX, node.y);
   };
 
-  const linkCanvasObjectFn = (labelScale = 1) => (link, ctx, globalScale) => {
-    if (!link.relation) return;
+  const linkCanvasObjectFn = (labelScale = 1, declutterThreshold = 0.7) => (link, ctx, globalScale) => {
+    if (!link.relation || globalScale < declutterThreshold) return;
     const start = link.source, end = link.target;
     if (!start || !end || typeof start.x !== 'number' || typeof end.x !== 'number') return;
 
@@ -176,12 +210,27 @@ export default function ThreatGraph({ graphData, title = "Threat Relationship Gr
     </div>
   );
 
+  const ViewControls = () => (
+    <div className="flex items-center gap-1">
+      <button onClick={() => zoomBy(1.4)} className="p-1.5 text-slate-400 hover:text-white bg-slate-950 border border-slate-800 rounded transition-colors" title="Zoom in">
+        <ZoomIn size={13} />
+      </button>
+      <button onClick={() => zoomBy(0.7)} className="p-1.5 text-slate-400 hover:text-white bg-slate-950 border border-slate-800 rounded transition-colors" title="Zoom out">
+        <ZoomOut size={13} />
+      </button>
+      <button onClick={resetView} className="p-1.5 text-slate-400 hover:text-white bg-slate-950 border border-slate-800 rounded transition-colors" title="Reset view / fit all nodes">
+        <RotateCcw size={13} />
+      </button>
+    </div>
+  );
+
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-xs font-semibold text-slate-400">{title}</h4>
         <div className="flex items-center gap-3">
           <Legend />
+          <ViewControls />
           <button
             onClick={enterFullscreen}
             className="flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-300 bg-slate-950 border border-slate-800 px-2 py-1 rounded transition-colors shrink-0"
@@ -192,9 +241,10 @@ export default function ThreatGraph({ graphData, title = "Threat Relationship Gr
         </div>
       </div>
 
-      {/* This wrapper is what actually goes fullscreen via the browser's native API.
-          When isFullscreen is true, it fills the ENTIRE physical screen (no browser
-          chrome), guaranteed by the browser itself — not dependent on any CSS. */}
+      <p className="text-[10px] text-slate-500 mb-2">
+        Scroll or use +/- to zoom in — labels appear clearly as you zoom. Drag nodes to rearrange.
+      </p>
+
       <div
         ref={fullscreenWrapperRef}
         className={isFullscreen ? "bg-slate-950 flex flex-col w-screen h-screen" : ""}
@@ -204,6 +254,7 @@ export default function ThreatGraph({ graphData, title = "Threat Relationship Gr
             <div className="flex items-center gap-4">
               <h3 className="text-sm font-semibold text-white">{title}</h3>
               <Legend />
+              <ViewControls />
             </div>
             <button
               onClick={exitFullscreen}
@@ -228,18 +279,18 @@ export default function ThreatGraph({ graphData, title = "Threat Relationship Gr
             linkDirectionalArrowLength={isFullscreen ? 8 : 6}
             linkDirectionalArrowRelPos={0.9}
             linkDirectionalArrowColor={() => '#38bdf8'}
-            cooldownTicks={isFullscreen ? 150 : 120}
-            d3AlphaDecay={isFullscreen ? 0.015 : 0.02}
-            d3VelocityDecay={0.3}
-            d3Force="charge"
+            cooldownTicks={200}
+            d3AlphaDecay={0.012}
+            d3VelocityDecay={0.35}
+            warmupTicks={50}
             onEngineStop={() => {
               const ref = isFullscreen ? fullscreenFgRef : fgRef;
-              if (ref.current) ref.current.zoomToFit(500, isFullscreen ? 80 : 40);
+              if (ref.current) ref.current.zoomToFit(600, isFullscreen ? 90 : 50);
             }}
             nodeRelSize={isFullscreen ? 9 : 7}
-            nodeCanvasObject={nodeCanvasObjectFn(isFullscreen ? 1.6 : 1)}
+            nodeCanvasObject={nodeCanvasObjectFn(isFullscreen ? 1.6 : 1, isFullscreen ? 0.4 : 0.55)}
             linkCanvasObjectMode={() => 'after'}
-            linkCanvasObject={linkCanvasObjectFn(isFullscreen ? 1.6 : 1)}
+            linkCanvasObject={linkCanvasObjectFn(isFullscreen ? 1.6 : 1, isFullscreen ? 0.5 : 0.7)}
             enableNodeDrag={true}
             enableZoomInteraction={true}
             enablePanInteraction={true}
