@@ -1,8 +1,0 @@
-out/
-target/
-data/
-*.class
-*.log
-.idea/
-*.iml
-.vscode/
