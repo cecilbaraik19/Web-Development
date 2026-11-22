@@ -4,5 +4,6 @@ def sum_of_ten_square_no(i,s):
         print(i*i)
         s=s+i*i
         sum_of_ten_square_no(i+1,s)
-print("Square of first 10 number")
+    else:
+        print("Square of first 10 number:",s)
 sum_of_ten_square_no(1,0)
